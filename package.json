@@ -1,6 +1,6 @@
 {
   "name": "@carecentive/carecentive-core",
-  "version": "0.9",
+  "version": "0.9.0",
   "description": "Core files for CareCentive",
   "exports": {
     "./*": "./*.js"
