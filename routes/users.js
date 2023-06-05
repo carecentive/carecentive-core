@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 
-const authentication = require('carecentive-core/source/Authentication')
+const authentication = require('../source/Authentication')
 
-const UserService = require('carecentive-core/services/UserService');
+const UserService = require('../services/UserService');
 
-const User = require('carecentive-core/models/User');
+const User = require('../models/User');
 
 router.post('/register', async function(req, res, next) {
   try {

@@ -3,7 +3,7 @@ const router = express.Router();
 
 const authentication = require('../source/Authentication')
 
-const QuestionnaireService = require('carecentive-core/services/QuestionnaireService')
+const QuestionnaireService = require('../services/QuestionnaireService')
 
 
 
