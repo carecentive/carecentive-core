@@ -1,0 +1,42 @@
+{
+  "name": "carecentive-core",
+  "version": "0.0.1",
+  "description": "Core files for CareCentive",
+  "exports": {
+    "./*": "./*.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mad-lab-fau/carecentive-core.git"
+  },
+  "author": "Michael Nissen",
+  "license": "Proprietary",
+  "bugs": {
+    "url": "https://github.com/mad-lab-fau/carecentive-core/issues"
+  },
+  "homepage": "https://github.com/mad-lab-fau/carecentive-core#readme",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "~1.4.4",
+    "crypto-js": "^4.1.1",
+    "dotenv": "^8.2.0",
+    "express": "~4.16.1",
+    "form-data": "^3.0.0",
+    "http-errors": "~1.6.3",
+    "jsonwebtoken": "^8.5.1",
+    "knex": "^0.21.13",
+    "moment": "^2.29.4",
+    "morgan": "~1.9.1",
+    "multiparty": "^4.2.2",
+    "mv": "^2.1.1",
+    "mysql2": "^2.3.3",
+    "node-cron": "^3.0.0",
+    "objection": "^2.2.3",
+    "web-push": "^3.4.4",
+    "winston": "^3.3.3"
+  }
+}
