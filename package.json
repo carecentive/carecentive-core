@@ -1,6 +1,6 @@
 {
-  "name": "carecentive-core",
-  "version": "0.0.1",
+  "name": "@carecentive/carecentive-core",
+  "version": "0.9",
   "description": "Core files for CareCentive",
   "exports": {
     "./*": "./*.js"
@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mad-lab-fau/carecentive-core.git"
+    "url": "git+https://github.com/carecentive/carecentive-core.git"
   },
   "author": "Michael Nissen",
   "license": "Proprietary",
   "bugs": {
-    "url": "https://github.com/mad-lab-fau/carecentive-core/issues"
+    "url": "https://github.com/carecentive/carecentive-core/issues"
   },
-  "homepage": "https://github.com/mad-lab-fau/carecentive-core#readme",
+  "homepage": "https://github.com/carecentive/carecentive-core#readme",
   "dependencies": {
     "axios": "^0.21.1",
     "bcryptjs": "^2.4.3",
