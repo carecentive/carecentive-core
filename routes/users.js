@@ -34,6 +34,7 @@ router.post('/register', async function(req, res, next) {
 
 router.post('/login', async function(req, res, next) {
   try {
+
     let username = req.body.username
     let password = req.body.password
 
@@ -51,6 +52,9 @@ router.post('/login', async function(req, res, next) {
     return res.json(token);
   }
   catch (err) {
+    if(err.message === "INVALID_NAME_OR_PASSWORD") {
+      return res.status(401).send("INVALID_NAME_OR_PASSWORD");
+    }
     next(err)
   }
 });
