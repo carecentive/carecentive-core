@@ -6,6 +6,14 @@ class WithingsApiError extends Error {
   }
 }
 
+class FitbitApiError extends Error {
+  constructor(message) {
+    super(message)
+    this.name = 'FitbitApiError'
+    Error.captureStackTrace(this, FitbitApiError)
+  }
+}
+
 class UserTokenNotFoundError extends Error {
   constructor(message) {
     super(message)
@@ -34,4 +42,4 @@ class AuthenticationMissingError extends Error {
   
   
 
-module.exports = {WithingsApiError, HttpError, UserTokenNotFoundError, AuthenticationMissingError};
+module.exports = {WithingsApiError, FitbitApiError, HttpError, UserTokenNotFoundError, AuthenticationMissingError};
