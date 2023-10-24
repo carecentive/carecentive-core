@@ -1,72 +1,77 @@
-const { FitbitApiError } = require('@carecentive/carecentive-core/source/Errors');
-const axios = require('axios');
+const { FitbitApiError } = require("../source/Errors");
+const axios = require("axios");
+const { HTTP_STATUS, FITBIT: CONSTANTS } = require("../source/Constants");
+const { fitbit: config } = require("../source/Config");
+const logger = require("winston");
 
 class FitbitApi {
-    static async apiSetup(authorizationCode) {
-        try {
-            // Define the API endpoint and request payload
-            const apiUrl = 'https://api.fitbit.com/oauth2/token';
+	static async apiSetup(authorizationCode) {
+		try {
+			// Define the API endpoint and request payload
+			const oauthUrl = config.apiUrl + config.oauth2TokenEndpoint;
 
-            const data = new URLSearchParams();
-            data.append('client_id', process.env.FITBIT_CLIENT_ID);
-            data.append('code', authorizationCode);
-            data.append('code_verifier', process.env.FITBIT_CODE_VERIFIER);
-            data.append('grant_type', 'authorization_code');
+			const data = new URLSearchParams();
+			data.append(CONSTANTS.CLIENT_ID, config.clientId);
+			data.append(CONSTANTS.CODE, authorizationCode);
+			data.append(CONSTANTS.CODE_VERIFIER, config.codeVerifier);
+			data.append(CONSTANTS.GRANT_TYPE, config.grantTypeAuthorizationCode);
 
-            // Define request headers
-            const headers = {
-                'Authorization': 'Basic ' + process.env.FITBIT_BASIC_TOKEN,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
+			// Define request headers
+			const headers = {
+				[CONSTANTS.AUTHORIZATION]: config.authorizationHeader,
+				[CONSTANTS.CONTENT_TYPE]: config.contentType,
+			};
 
-            const response = await axios({
-                method: "post",
-                url: apiUrl,
-                data: data,
-                headers: headers
-            });
+			const response = await axios({
+				method: "post",
+				url: oauthUrl,
+				data: data,
+				headers: headers
+			});
 
-            if (response.status == "200") {
-                return response.data
-            } else {
-                throw new FitbitApiError(response.status + " (" + response.data.errors + ")")
-            }
-        } catch (error) {
-            throw error
-        }
-    }
+			if (response.status == HTTP_STATUS.OK) {
+				return response.data;
+			} else {
+				throw new FitbitApiError(response.status + " (" + response.data.errors + ")");
+			}
+		} catch(error) {
+			logger.error(error);
+			throw error;
+		}
+	}
 
-    static async refreshToken(currentRefreshToken) {
-        try {
-            // Define the API endpoint and request payload
-            const apiUrl = 'https://api.fitbit.com/oauth2/token';
+	static async refreshToken(currentRefreshToken) {
+		try {
+			// Define the API endpoint and request payload
+			const oauthUrl = config.apiUrl + config.oauth2TokenEndpoint;
 
-            const data = new URLSearchParams();
-            data.append('grant_type', 'refresh_token');
-            data.append('refresh_token', currentRefreshToken);
-
-            // Define request headers
-            const headers = {
-                'Authorization': 'Basic ' + process.env.FITBIT_BASIC_TOKEN,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
-
-            const response = await axios({
-                method: "post",
-                url: apiUrl,
-                data: data,
-                headers: headers
-            });
-
-            if (response.status == "200") {
-                return response.data
-            } else {
-                throw new FitbitApiError(response.status + " (" + response.data.errors + ")")
-            }
-        } catch (error) {
-            throw error
-        }
-    }
+			const data = new URLSearchParams();
+			data.append(CONSTANTS.GRANT_TYPE, config.grantTypeRefreshToken);
+			data.append(CONSTANTS.REFRESH_TOKEN, currentRefreshToken);
+	
+			// Define request headers
+			const headers = {
+				[CONSTANTS.AUTHORIZATION]: config.authorizationHeader,
+				[CONSTANTS.CONTENT_TYPE]: config.contentType,
+			};
+	
+			const response = await axios({
+				method: "post",
+				url: oauthUrl,
+				data: data,
+				headers: headers
+			});
+	
+			if (response.status == HTTP_STATUS.OK) {
+				return response.data;
+			} else {
+				throw new FitbitApiError(response.status + " (" + response.data.errors + ")");
+			}	
+		} catch (error) {
+			logger.error(error);
+			throw error;
+		}
+	}
 }
 
 module.exports = FitbitApi;
