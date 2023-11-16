@@ -13,6 +13,9 @@ module.exports = {
 		GRANT_TYPE: "grant_type",
 		AUTHORIZATION: "Authorization",
 		CONTENT_TYPE: "Content-Type",
-		REFRESH_TOKEN: "refresh_token"
+		REFRESH_TOKEN: "refresh_token",
+		TOKEN_TYPE_BASIC: "Basic",
+		TOKEN_TYPE_BEARER: "Bearer",
+		SINGLE_SPACE: " "
 	}
 };
