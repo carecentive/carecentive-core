@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authentication = require('../source/Authentication');
-const FitbitDataHub = require('../services/FitbitDataHub');
+const FitbitManager = require('../services/fitbit/FitbitManager');
 
 router.get("/", authentication.authenticateToken, async function (req, res, next) {
     try {
@@ -16,9 +16,9 @@ router.post("/setup", authentication.authenticateToken, async function (req, res
         let userId = req.authData.user_id;
         let authorizationCode = req.body.code;
 
-        await FitbitDataHub.registerUser(authorizationCode, userId)
+        await FitbitManager.registerUser(authorizationCode, userId)
 
-        res.status(200).send("Device setup successful.")
+        res.status(200).send("Authorization Successful!")
     } catch (err) {
         next(err);
     }
