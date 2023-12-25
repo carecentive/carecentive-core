@@ -1,9 +1,10 @@
 const DateTimeUtils = require("./DateTimeUtils");
 const { UserTokenNotFoundError } = require("../../source/Errors");
-var logger = require("../../source/Loggers");
+const Logger = require("../../source/Loggers");
 const ApiManager = require("./api/ApiManager");
 const DBManager = require("./db/DBManager");
 const FitbitHelper = require("./FitbitHelper");
+const Config = require("./Config");
 
 class FitbitManager {
 	static async registerUser(authorizationCode, userId) {
@@ -29,7 +30,7 @@ class FitbitManager {
 					accessToken, expirationDate, refreshToken, scope);
 			}
 		} catch (error) {
-			logger.error(error);
+			Logger.error(error);
 			throw error;
 		}
 	}
@@ -57,7 +58,7 @@ class FitbitManager {
 				throw new UserTokenNotFoundError;
 			}
 		} catch (error) {
-			logger.error(error);
+			Logger.error(error);
 			throw error;
 		}
 	}
@@ -76,24 +77,26 @@ class FitbitManager {
 			tokenData = await this.refreshUserToken(userId);
 		}
 		catch (error) {
-			logger.error("Could not refresh access token for user " + userId + ": ", error, JSON.stringify(error));
+			Logger.error("Could not refresh access token for user " + userId + ": ", error, JSON.stringify(error));
 			return;
 		}
 
 		try {
-			let resonse = await ApiManager.getProfile(tokenData.access_token, tokenData.fitbit_user_id);
-			console.log(resonse);
+			await this.getHeartRate(userId, tokenData.access_token, tokenData.fitbit_user_id);
 		} catch (error) {
-			logger.error(error);
+			Logger.error("Error while processing heart rate data for user " + userId + ":", error, JSON.stringify(error));
 		}
+	}
 
-		try {
-			let resonse = await ApiManager.getDevices(tokenData.access_token, tokenData.fitbit_user_id);
-			console.log(resonse);
-		} catch (error) {
-			logger.error(error);
+	static async getHeartRate(userId, accessToken, fitbitUserId) {
+		let startTimestamp = await FitbitHelper.getLastPolledTimestamp(userId, Config.requestType.heart);
+		let endTimestamp = await FitbitHelper.getLastSyncedTimestamp(accessToken, fitbitUserId);
+		const ranges = FitbitHelper.getDateTimeRanges(startTimestamp, endTimestamp);
+
+		for (const range of ranges) {
+			let response = await ApiManager.getHeartRateIntradayByDateAndTime(accessToken, fitbitUserId, range);
+			await DBManager.storeTimeSeriesData(userId, Config.requestType.heart, range, response);
 		}
 	}
 }
-
 module.exports = FitbitManager;

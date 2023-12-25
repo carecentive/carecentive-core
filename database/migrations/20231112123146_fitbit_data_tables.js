@@ -6,6 +6,8 @@ exports.up = function (knex) {
 			table.foreign("user_id").references("users.id");
 			table.string("request_type");
 			table.timestamp("request_timestamp");
+			table.timestamp("from_timestamp");
+			table.timestamp("to_timestamp");
             table.text("response", "mediumtext");
 			table.timestamps(false, true);
 		})

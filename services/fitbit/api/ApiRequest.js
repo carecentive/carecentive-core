@@ -2,7 +2,7 @@ const config = require("../Config");
 const CONSTANTS = require("../Constants");
 const { AuthenticationMissingError, FitbitApiError } = require("../../../source/Errors");
 const axios = require("axios");
-const logger = require("../../../source/Loggers");
+const Logger = require("../../../source/Loggers");
 
 class ApiRequest {
     static async authorizeUser(authorizationCode) {
@@ -38,7 +38,7 @@ class ApiRequest {
             // Error class is used to get the line number. 
             // In other words, it is easy to debug where the error is. 
             const err = new Error(error);
-            logger.error(err);
+            Logger.error(err);
             throw err;
         }
     }
@@ -74,7 +74,7 @@ class ApiRequest {
             // Error class is used to get the line number. 
             // In other words, it is easy to debug where the error is.
             const err = new Error(error);
-            logger.error(err);
+            Logger.error(err);
             throw err;
         }
     }
@@ -98,17 +98,17 @@ class ApiRequest {
                 url: endpointUrl,
                 headers: headers
             });
-            
+
             if (response.status == CONSTANTS.HTTP_STATUS.OK) {
-                return response.data;
+                return response;
             } else {
                 throw new FitbitApiError(response.status + " (" + response.data.errors + ")");
             }
         } catch (error) {
             // Error class is used to get the line number. 
-            // In other words, it is easy to debug where the error is. 
+            // In other words, it is easy to debug where the error is.
             const err = new Error(error);
-            logger.error(err);
+            Logger.error(err);
             throw err;
         }
     }

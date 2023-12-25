@@ -10,14 +10,14 @@ class Profile {
 	 * @param {*} fitbitUserId The user id of the fitbit user in the fitbit account. 
 	 * @returns 
 	 */
-    static async getProfile(accessToken, fitbitUserId) {
+	static async getProfile(accessToken, fitbitUserId) {
 		try {
 			let endpoint = Config.apiUrl
-			+ "/1/user/" + fitbitUserId
-			+ "/"+ "profile.json";
+				+ "/1/user/" + fitbitUserId
+				+ "/" + "profile.json";
 
 			return await ApiRequest.sendRequest(accessToken, endpoint);
-		} catch(error) {
+		} catch (error) {
 			Logger.error(error);
 			throw error;
 		}

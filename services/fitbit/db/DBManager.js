@@ -1,4 +1,7 @@
 const FitbitToken = require("../../../models/FitbitToken");
+const FitbitData = require("../../../models/FitbitData");
+const DateTimeUtils = require("../DateTimeUtils");
+const Logger = require("../../../source/Loggers");
 
 class DBManager {
     static async insertUser(userId, fitbitUserId, memberSince,
@@ -44,8 +47,40 @@ class DBManager {
     }
 
     static async getAllUsers() {
-		return await FitbitToken.query().distinct("user_id");
-	}
+        return await FitbitToken.query().distinct("user_id");
+    }
+
+    static async getLastPolledEntry(userId, requestType) {
+        return await FitbitData.query().where({
+            "user_id": userId,
+            "request_type": requestType
+        }).orderBy("request_timestamp", "DESC")
+            .orderBy("to_timestamp", "DESC").first();
+    }
+
+    static async storeTimeSeriesData(userId, requestType, range, response) {
+        let fromTimestamp = DateTimeUtils.getTimestampFromDateAndTime(range.date, range.startTime);
+        let toTimestamp = DateTimeUtils.getTimestampFromDateAndTime(range.date, range.endTime);
+        let requestTimestamp = new Date();
+
+        await this.insertTimeSeriesData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, JSON.stringify(response));
+    }
+
+    static async insertTimeSeriesData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, response) {
+        try {
+            await FitbitData.query().insert({
+                user_id: userId,
+                request_type: requestType,
+                request_timestamp: requestTimestamp,
+                from_timestamp: fromTimestamp,
+                to_timestamp: toTimestamp,
+                response: response
+            });
+        } catch (error) {
+            Logger.error(error);
+            throw error;
+        }
+    };
 }
 
 module.exports = DBManager;

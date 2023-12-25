@@ -6,11 +6,11 @@ class Devices {
 	static async getDevices(accessToken, fitbitUserId) {
 		try {
 			let endpoint = Config.apiUrl
-			+ "/1/user/" + fitbitUserId
-			+ "/"+ "devices.json";
+				+ "/1/user/" + fitbitUserId
+				+ "/" + "devices.json";
 
 			return await ApiRequest.sendRequest(accessToken, endpoint);
-		} catch(error) {
+		} catch (error) {
 			Logger.error(error);
 			throw error;
 		}
