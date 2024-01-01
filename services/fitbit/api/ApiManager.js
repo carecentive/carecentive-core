@@ -10,7 +10,8 @@ class ApiManager {
 	}
 
 	static async refreshToken(currentRefreshToken) {
-		return RefreshToken.refreshToken(currentRefreshToken);
+		let response = await RefreshToken.refreshToken(currentRefreshToken);
+		return response.data;
 	}
 
 	static async getProfile(accessToken, fitbitUserId) {

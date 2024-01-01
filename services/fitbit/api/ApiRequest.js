@@ -3,6 +3,7 @@ const CONSTANTS = require("../Constants");
 const { AuthenticationMissingError, FitbitApiError } = require("../../../source/Errors");
 const axios = require("axios");
 const Logger = require("../../../source/Loggers");
+const RateLimit = require("./RateLimit");
 
 class ApiRequest {
     static async authorizeUser(authorizationCode) {
@@ -66,7 +67,7 @@ class ApiRequest {
             });
 
             if (response.status == CONSTANTS.HTTP_STATUS.OK) {
-                return response.data;
+                return response;
             } else {
                 throw new FitbitApiError(response.status + " (" + response.data.errors + ")");
             }
@@ -100,6 +101,9 @@ class ApiRequest {
             });
 
             if (response.status == CONSTANTS.HTTP_STATUS.OK) {
+                let totalQuota = response.headers["fitbit-rate-limit-limit"];
+                let refillSeconds = 3600;
+                RateLimit.set(10, 10, 10);
                 return response;
             } else {
                 throw new FitbitApiError(response.status + " (" + response.data.errors + ")");
