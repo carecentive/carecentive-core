@@ -116,9 +116,9 @@ class FitbitManager {
 		}
 		
 		try {
-			await this.getHeartRate(userId, tokenData.access_token, tokenData.fitbit_user_id);
+			await this.processTimeSeriesIntradayData(userId, tokenData.access_token, tokenData.fitbit_user_id);
 		} catch (error) {
-			Logger.error("Error while processing heart rate data for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing Time Series Intraday data for user " + userId + ":", error, JSON.stringify(error));
 		}
 
 		console.log(RateLimit.processedUsers)
@@ -126,14 +126,29 @@ class FitbitManager {
 		RateLimit.resetRequestProcessed();
 	}
 
-	static async getHeartRate(userId, accessToken, fitbitUserId) {
-		let startTimestamp = await FitbitHelper.getLastPolledTimestamp(userId, Config.requestType.heart);
+	static async processTimeSeriesIntradayData(userId, accessToken, fitbitUserId) {
+		try {
+			await this.processHeartRate(userId, accessToken, fitbitUserId, Config.requestType.heart);
+		} catch (error) {
+			Logger.error("Error while processing heart rate data for user " + userId + ":", error, JSON.stringify(error));
+		}
+
+		try {
+			await this.processActiveZoneMinute(userId, accessToken, fitbitUserId, Config.requestType.activeZoneMinutes);
+		} catch (error) {
+			Logger.error("Error while processing active zone minutes data for user " + userId + ":", error, JSON.stringify(error));
+		}
+	}
+
+	static async processHeartRate(userId, accessToken, fitbitUserId, requestType) {
+		console.log("Processing Heart Rate");
+		let startTimestamp = await FitbitHelper.getLastPolledTimestamp(userId, requestType);
 		let endTimestamp = await FitbitHelper.getLastSyncedTimestamp(accessToken, fitbitUserId);
 		const ranges = FitbitHelper.getDateTimeRanges(startTimestamp, endTimestamp);
 
 		console.log("RateLimit: "+RateLimit.totalQuota)
 		console.log("Refill: "+RateLimit.remainingSecondsUntilRefill)
-		console.log("Number of request remainig: " + ranges.length);
+		console.log("Number of request remainig in processing Heart Rate: " + ranges.length);
 		for (const range of ranges) {
 			if(RateLimit.isLimitExceeded()) {
 				console.log("Request limit is exceeded!");
@@ -141,11 +156,34 @@ class FitbitManager {
 				break;
 			}
 			let response = await ApiManager.getHeartRateIntradayByDateAndTime(accessToken, fitbitUserId, range);
-			await DBManager.storeTimeSeriesData(userId, Config.requestType.heart, range, response);
+			await DBManager.storeTimeSeriesData(userId, requestType, range, response);
 
 			RateLimit.requestProcessed();
 		}
-		console.log(RateLimit.numberOfRequestProcessed + " Request processed successfully!");
+		console.log("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
+	}
+
+	static async processActiveZoneMinute(userId, accessToken, fitbitUserId, requestType) {
+		console.log("Processing Active Zone Minute");
+		let startTimestamp = await FitbitHelper.getLastPolledTimestamp(userId, requestType);
+		let endTimestamp = await FitbitHelper.getLastSyncedTimestamp(accessToken, fitbitUserId);
+		const ranges = FitbitHelper.getDateTimeRanges(startTimestamp, endTimestamp);
+
+		console.log("RateLimit: "+RateLimit.totalQuota);
+		console.log("Refill: "+RateLimit.remainingSecondsUntilRefill);
+		console.log("Number of request remainig in processing Active Zone Minute: " + ranges.length);
+		for (const range of ranges) {
+			if(RateLimit.isLimitExceeded()) {
+				console.log("Request limit is exceeded!");
+				RateLimit.setProcessedStatus(userId, false);
+				break;
+			}
+			let response = await ApiManager.getActiveZoneMinuteIntradayByDateAndTime(accessToken, fitbitUserId, range);
+			await DBManager.storeTimeSeriesData(userId, requestType, range, response);
+
+			RateLimit.requestProcessed();
+		}
+		console.log("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
 	}
 }
 module.exports = FitbitManager;

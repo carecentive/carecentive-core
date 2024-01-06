@@ -102,8 +102,8 @@ class ApiRequest {
 
             if (response.status == CONSTANTS.HTTP_STATUS.OK) {
                 let totalQuota = response.headers["fitbit-rate-limit-limit"];
-                let refillSeconds = 3600;
-                RateLimit.set(10, 10, 10);
+                let refillSeconds = response.headers['fitbit-rate-limit-reset'];
+                RateLimit.set(totalQuota, refillSeconds, 10);
                 return response;
             } else {
                 throw new FitbitApiError(response.status + " (" + response.data.errors + ")");
@@ -112,6 +112,12 @@ class ApiRequest {
             // Error class is used to get the line number. 
             // In other words, it is easy to debug where the error is.
             const err = new Error(error);
+            
+            if(error.response && error.response.status == CONSTANTS.HTTP_STATUS.TOO_MANY_REQUEST) {
+                console.error("You have reached the rate limit. Please wait until it is being refilled (" 
+                + RateLimit.remainingSecondsUntilRefill + " Seconds) and try again.");
+            }
+            
             Logger.error(err);
             throw err;
         }

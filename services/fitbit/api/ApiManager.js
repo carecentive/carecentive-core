@@ -3,6 +3,7 @@ const RefreshToken = require("./resources/RefreshToken");
 const Profile = require("./resources/Profile");
 const Device = require("./resources/Devices");
 const HeartRate = require("./resources/HeartRate");
+const ActiveZoneMinute = require("./resources/ActiveZoneMinute");
 
 class ApiManager {
 	static async authorizeUser(authorizationCode) {
@@ -25,6 +26,11 @@ class ApiManager {
 
 	static async getHeartRateIntradayByDateAndTime(accessToken, fitbitUserId, range) {
 		let response = await HeartRate.getHeartRateIntradayByDateAndTime(accessToken, fitbitUserId, range.date, range.startTime, range.endTime);
+		return response.data;
+	}
+
+	static async getActiveZoneMinuteIntradayByDateAndTime(accessToken, fitbitUserId, range) {
+		let response = await ActiveZoneMinute.getActiveZoneMinuteIntradayByDateAndTime(accessToken, fitbitUserId, range.date, range.startTime, range.endTime)
 		return response.data;
 	}
 }

@@ -5,6 +5,7 @@ module.exports = {
 	grantTypeRefreshToken: "refresh_token",
 	contentType: "application/x-www-form-urlencoded",
 	requestType: {
-		heart: "heart"
+		heart: "heart",
+		activeZoneMinutes: "active-zone-minutes"
 	}
 };
