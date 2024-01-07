@@ -4,6 +4,8 @@ const DBManager = require("./db/DBManager");
 const DateTimeUtils = require("./DateTimeUtils");
 
 class FitbitHelper {
+	static lastSyncedTimestamp = 0;
+
 	/**
 	 * Get the membership creation date of the user from the fitbit account's user profile.
 	 * Current date will be returned if the access to the data is restricted or not found.
@@ -53,16 +55,20 @@ class FitbitHelper {
 	}
 
 	static async getLastSyncedTimestamp(accessToken, fitbitUserId) {
-		let devices = await ApiManager.getDevices(accessToken, fitbitUserId);
-		let timestamp = 0;
-		for (const device of devices) {
-			let currentTimestamp = DateTimeUtils.getTimestampFromISOTimestamp(device.lastSyncTime);
-			if (currentTimestamp >= timestamp) {
-				timestamp = currentTimestamp;
+		if(this.lastSyncedTimestamp <= 0) {
+			let devices = await ApiManager.getDevices(accessToken, fitbitUserId);
+			let timestamp = 0;
+			for (const device of devices) {
+				let currentTimestamp = DateTimeUtils.getTimestampFromISOTimestamp(device.lastSyncTime);
+				if (currentTimestamp >= timestamp) {
+					timestamp = currentTimestamp;
+				}
 			}
+	
+			this.lastSyncedTimestamp = timestamp;	
 		}
 
-		return timestamp;
+		return this.lastSyncedTimestamp;
 	}
 
 	static getDateTimeRanges(startTimestamp, endTimestamp) {

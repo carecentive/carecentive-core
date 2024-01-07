@@ -6,6 +6,15 @@ module.exports = {
 	contentType: "application/x-www-form-urlencoded",
 	requestType: {
 		heart: "heart",
-		activeZoneMinutes: "active-zone-minutes"
+		activeZoneMinutes: "active-zone-minutes",
+		calories: "calories",
+		distance: "distance",
+		elevation: "elevation",
+		floors: "floors",
+		steps: "steps"
+	},
+	detailLevel: {
+		oneSecond: "1sec",
+		oneMinute: "1min"
 	}
 };
