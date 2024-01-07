@@ -58,9 +58,17 @@ class DBManager {
             .orderBy("to_timestamp", "DESC").first();
     }
 
-    static async storeTimeSeriesData(userId, requestType, range, response) {
+    static async storeIntradayData(userId, requestType, range, response) {
         let fromTimestamp = DateTimeUtils.getTimestampFromDateAndTime(range.date, range.startTime);
         let toTimestamp = DateTimeUtils.getTimestampFromDateAndTime(range.date, range.endTime);
+        let requestTimestamp = new Date();
+
+        await this.insertTimeSeriesData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, JSON.stringify(response));
+    }
+
+    static async storeIntradayByIntervalData(userId, requestType, range, response) {
+        let fromTimestamp = DateTimeUtils.getTimestampFromDateAndTime(range.startDate, range.startTime);
+        let toTimestamp = DateTimeUtils.getTimestampFromDateAndTime(range.endDate, range.endTime);
         let requestTimestamp = new Date();
 
         await this.insertTimeSeriesData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, JSON.stringify(response));

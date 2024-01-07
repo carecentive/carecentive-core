@@ -23,7 +23,7 @@ function getFormatedDateFromTimestamp(timestamp, format) {
 	return moment.unix(timestamp).format(format);
 }
 
-function getDateTimeRanges(startTimestamp, endTimestamp) {
+function getTimeRanges(startTimestamp, endTimestamp) {
 	// create a list of ranges(date: yyyy-MM-dd, startTime: HH:mm:ss, endTime: HH:mm:ss)
 	let ranges = [];
 	let startDateTime = moment(moment.unix(startTimestamp), "YYYY-MM-DD HH:mm:ss");
@@ -42,6 +42,41 @@ function getDateTimeRanges(startTimestamp, endTimestamp) {
 			});
 		}
 		currentDateTime.add(1, "day").startOf("day");
+	}
+	return ranges;
+}
+
+function getDateAndTimeRanges(startTimestamp, endTimestamp, maximumRange) {
+	let ranges = [];
+	let startDateTime = moment(moment.unix(startTimestamp), "YYYY-MM-DD HH:mm:ss");
+	let endDateTime = moment(moment.unix(endTimestamp), "YYYY-MM-DD HH:mm:ss");
+	let currentDateTime = startDateTime.clone();
+	let nextDateTime = startDateTime.clone();
+
+	while (currentDateTime.isBefore(endDateTime)) {
+		let dayDifferences = endDateTime.diff(currentDateTime, "day");
+		if (dayDifferences > maximumRange) {
+			nextDateTime.add(maximumRange, "day");
+		} else {
+			nextDateTime.add(dayDifferences, "day");
+		}
+
+		let startOfTheCurrentDate = getStartOfTheCurrentDay(currentDateTime.clone(), startDateTime.clone());
+		let endOfTheNextDate = getEndOfTheCurrentDay(nextDateTime.clone(), endDateTime.clone());
+
+		let timeDifferences = endOfTheNextDate.diff(startOfTheCurrentDate, "seconds");
+		if(timeDifferences > 0) {
+			ranges.push({
+				startDate: currentDateTime.format("YYYY-MM-DD"),
+				startTime: startOfTheCurrentDate.format("HH:mm:ss"),
+				endDate: nextDateTime.format("YYYY-MM-DD"),
+				endTime: endOfTheNextDate.format("HH:mm:ss")
+			});	
+		}
+		
+		currentDateTime.add(maximumRange + 1, "day").startOf("day");
+		nextDateTime.add(1, "day").startOf("day");
+
 	}
 	return ranges;
 }
@@ -102,7 +137,8 @@ module.exports = {
 	dateToTimestamp,
 	getNowAsTimestamp,
 	getFormatedDateFromTimestamp,
-	getDateTimeRanges,
+	getTimeRanges,
+	getDateAndTimeRanges,
 	getTimestampFromISOTimestamp,
 	isTimestampToday,
 	getCurrentDateTime,

@@ -18,6 +18,22 @@ class Intraday {
 			throw error;
 		}
 	}
+
+    static async getIntradayByInterval(accessToken, fitbitUserId, resource, startDate, endDate) {
+        try {
+			// /1/user/[user-id]/br/date/[start-date]/[end-date]/all.json
+			let endpoint = Config.apiUrl
+				+ "/1/user/" + fitbitUserId
+				+ "/" + resource + "/date/"
+				+ startDate + "/" + endDate
+                + "/all.json";
+				
+			return await ApiRequest.sendRequest(accessToken, endpoint);
+		} catch (error) {
+			Logger.error(error);
+			throw error;
+		}
+    }
 }
 
 module.exports = Intraday;

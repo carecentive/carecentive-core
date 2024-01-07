@@ -27,6 +27,11 @@ class ApiManager {
 		let response = await Intraday.getIntradayByDateAndTime(accessToken, fitbitUserId, resource, range.date, range.startTime, range.endTime, detailLevel)
 		return response.data;
 	}
+
+	static async getIntradayByInterval(accessToken, fitbitUserId, resource, range) {
+		let response = await Intraday.getIntradayByInterval(accessToken, fitbitUserId, resource, range.startDate, range.endDate)
+		return response.data;
+	}
 }
 
 module.exports = ApiManager;

@@ -71,9 +71,18 @@ class FitbitHelper {
 		return this.lastSyncedTimestamp;
 	}
 
-	static getDateTimeRanges(startTimestamp, endTimestamp) {
+	static getTimeRanges(startTimestamp, endTimestamp) {
 		try {
-			return DateTimeUtils.getDateTimeRanges(startTimestamp, endTimestamp);
+			return DateTimeUtils.getTimeRanges(startTimestamp, endTimestamp);
+		} catch (error) {
+			Logger.error(error);
+			throw error;
+		}
+	}
+
+	static getDateAndTimeRanges(startTimestamp, endTimestamp, maximumRange) {
+		try {
+			return DateTimeUtils.getDateAndTimeRanges(startTimestamp, endTimestamp, maximumRange);
 		} catch (error) {
 			Logger.error(error);
 			throw error;

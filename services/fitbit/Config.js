@@ -11,7 +11,10 @@ module.exports = {
 		distance: "distance",
 		elevation: "elevation",
 		floors: "floors",
-		steps: "steps"
+		steps: "steps",
+		breathingRate: "br",
+		heartRateVariability: "hrv",
+		spO2: "spo2"
 	},
 	detailLevel: {
 		oneSecond: "1sec",

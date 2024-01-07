@@ -148,13 +148,21 @@ class FitbitManager {
 		} catch (error) {
 			Logger.error("Error while processing activities data for user " + userId + ":", error, JSON.stringify(error));
 		}
+
+		try {
+			await this.processIntradayByInterval(userId, accessToken, fitbitUserId, Config.requestType.breathingRate, 30);
+			await this.processIntradayByInterval(userId, accessToken, fitbitUserId, Config.requestType.heartRateVariability, 30);
+			await this.processIntradayByInterval(userId, accessToken, fitbitUserId, Config.requestType.spO2, 30);
+		} catch (error) {
+			Logger.error("Error while processing intraday data by interval for user " + userId + ":", error, JSON.stringify(error));
+		}
 	}
 
 	static async processIntraday(userId, accessToken, fitbitUserId, requestType, detailLevel) {
 		console.log("Processing "+ requestType);
 		let startTimestamp = await FitbitHelper.getLastPolledTimestamp(userId, requestType);
 		let endTimestamp = await FitbitHelper.getLastSyncedTimestamp(accessToken, fitbitUserId);
-		const ranges = FitbitHelper.getDateTimeRanges(startTimestamp, endTimestamp);
+		const ranges = FitbitHelper.getTimeRanges(startTimestamp, endTimestamp);
 
 		console.log("RateLimit: "+RateLimit.totalQuota)
 		console.log("Refill: "+RateLimit.remainingSecondsUntilRefill)
@@ -166,7 +174,31 @@ class FitbitManager {
 				break;
 			}
 			let response = await ApiManager.getIntradayByDateAndTime(accessToken, fitbitUserId, requestType, range, detailLevel);
-			await DBManager.storeTimeSeriesData(userId, requestType, range, response);
+			await DBManager.storeIntradayData(userId, requestType, range, response);
+
+			RateLimit.requestProcessed();
+		}
+		console.log("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
+	}
+
+	static async processIntradayByInterval(userId, accessToken, fitbitUserId, requestType, maximumRange) {
+		console.log("Processing "+ requestType);
+		let startTimestamp = await FitbitHelper.getLastPolledTimestamp(userId, requestType);
+		let endTimestamp = await FitbitHelper.getLastSyncedTimestamp(accessToken, fitbitUserId);
+		const ranges = FitbitHelper.getDateAndTimeRanges(startTimestamp, endTimestamp, maximumRange);
+
+		console.log(ranges);
+		console.log("RateLimit: "+RateLimit.totalQuota)
+		console.log("Refill: "+RateLimit.remainingSecondsUntilRefill)
+		console.log("Number of request remainig in processing "+ requestType + " : " + ranges.length);
+		for (const range of ranges) {
+			if(RateLimit.isLimitExceeded()) {
+				console.log("Request limit is exceeded!");
+				RateLimit.setProcessedStatus(userId, false);
+				break;
+			}
+			let response = await ApiManager.getIntradayByInterval(accessToken, fitbitUserId, requestType, range);
+			await DBManager.storeIntradayByIntervalData(userId, requestType, range, response);
 
 			RateLimit.requestProcessed();
 		}
