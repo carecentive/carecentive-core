@@ -114,11 +114,17 @@ class FitbitManager {
 			Logger.error("Could not refresh access token for user " + userId + ": ", error, JSON.stringify(error));
 			return;
 		}
+
+		try {
+			await this.processTimeSeriesData(userId, tokenData.access_token, tokenData.fitbit_user_id);
+		} catch (error) {
+			Logger.error("Error while processing Time Series data for user " + userId + ":", error, JSON.stringify(error));
+		}
 		
 		try {
-			await this.processTimeSeriesIntradayData(userId, tokenData.access_token, tokenData.fitbit_user_id);
+			await this.processIntradayData(userId, tokenData.access_token, tokenData.fitbit_user_id);
 		} catch (error) {
-			Logger.error("Error while processing Time Series Intraday data for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing Intraday data for user " + userId + ":", error, JSON.stringify(error));
 		}
 
 		console.log(RateLimit.processedUsers)
@@ -126,7 +132,16 @@ class FitbitManager {
 		RateLimit.resetRequestProcessed();
 	}
 
-	static async processTimeSeriesIntradayData(userId, accessToken, fitbitUserId) {
+	static async processTimeSeriesData(userId, accessToken, fitbitUserId) {
+		try {
+			await this.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.requestType.foodLogsCalories, 1095);
+			await this.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.requestType.foodLogsWater, 1095);
+		} catch (error) {
+			Logger.error("Error while processing food log data for user " + userId + ":", error, JSON.stringify(error));
+		}
+	}
+
+	static async processIntradayData(userId, accessToken, fitbitUserId) {
 		try {
 			await this.processIntraday(userId, accessToken, fitbitUserId, Config.requestType.heart, Config.detailLevel.oneSecond);
 		} catch (error) {
@@ -198,6 +213,29 @@ class FitbitManager {
 			}
 			let response = await ApiManager.getIntradayByInterval(accessToken, fitbitUserId, requestType, range);
 			await DBManager.storeIntradayByIntervalData(userId, requestType, range, response);
+
+			RateLimit.requestProcessed();
+		}
+		console.log("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
+	}
+
+	static async processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, requestType, maximumRange) {
+		console.log("Processing "+ requestType);
+		let startTimestamp = await FitbitHelper.getLastPolledTimestamp(userId, requestType);
+		let endTimestamp = await FitbitHelper.getLastSyncedTimestamp(accessToken, fitbitUserId);
+		const ranges = FitbitHelper.getDateAndTimeRanges(startTimestamp, endTimestamp, maximumRange);
+
+		console.log("RateLimit: "+RateLimit.totalQuota)
+		console.log("Refill: "+RateLimit.remainingSecondsUntilRefill)
+		console.log("Number of request remainig in processing "+ requestType + " : " + ranges.length);
+		for (const range of ranges) {
+			if(RateLimit.isLimitExceeded()) {
+				console.log("Request limit is exceeded!");
+				RateLimit.setProcessedStatus(userId, false);
+				break;
+			}
+			let response = await ApiManager.getTimeSeriesByDateRange(accessToken, fitbitUserId, requestType, range);
+			await DBManager.storeTimeSeriesByDateRange(userId, requestType, range, response);
 
 			RateLimit.requestProcessed();
 		}

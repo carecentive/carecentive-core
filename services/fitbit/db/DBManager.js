@@ -67,6 +67,10 @@ class DBManager {
     }
 
     static async storeIntradayByIntervalData(userId, requestType, range, response) {
+        await this.storeTimeSeriesByDateRange(userId, requestType, range, response);
+    }
+
+    static async storeTimeSeriesByDateRange(userId, requestType, range, response) {
         let fromTimestamp = DateTimeUtils.getTimestampFromDateAndTime(range.startDate, range.startTime);
         let toTimestamp = DateTimeUtils.getTimestampFromDateAndTime(range.endDate, range.endTime);
         let requestTimestamp = new Date();

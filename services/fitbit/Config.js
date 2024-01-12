@@ -14,7 +14,9 @@ module.exports = {
 		steps: "activities/steps",
 		breathingRate: "br",
 		heartRateVariability: "hrv",
-		spO2: "spo2"
+		spO2: "spo2",
+		foodLogsCalories: "foods/log/caloriesIn",
+		foodLogsWater: "foods/log/water"
 	},
 	detailLevel: {
 		oneSecond: "1sec",

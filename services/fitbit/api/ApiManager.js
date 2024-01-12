@@ -3,6 +3,7 @@ const RefreshToken = require("./resources/RefreshToken");
 const Profile = require("./resources/Profile");
 const Device = require("./resources/Devices");
 const Intraday = require("./resources/Intraday");
+const TimeSeries = require("./resources/TimeSeries");
 
 class ApiManager {
 	static async authorizeUser(authorizationCode) {
@@ -30,6 +31,11 @@ class ApiManager {
 
 	static async getIntradayByInterval(accessToken, fitbitUserId, resource, range) {
 		let response = await Intraday.getIntradayByInterval(accessToken, fitbitUserId, resource, range.startDate, range.endDate)
+		return response.data;
+	}
+
+	static async getTimeSeriesByDateRange(accessToken, fitbitUserId, resource, range) {
+		let response = await TimeSeries.getTimeSeriesByDateRange(accessToken, fitbitUserId, resource, range.startDate, range.endDate)
 		return response.data;
 	}
 }
