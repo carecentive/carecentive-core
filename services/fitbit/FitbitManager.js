@@ -187,7 +187,6 @@ class FitbitManager {
 		let endTimestamp = await FitbitHelper.getLastSyncedTimestamp(accessToken, fitbitUserId);
 		const ranges = FitbitHelper.getDateAndTimeRanges(startTimestamp, endTimestamp, maximumRange);
 
-		console.log(ranges);
 		console.log("RateLimit: "+RateLimit.totalQuota)
 		console.log("Refill: "+RateLimit.remainingSecondsUntilRefill)
 		console.log("Number of request remainig in processing "+ requestType + " : " + ranges.length);

@@ -8,7 +8,7 @@ class Intraday {
 			// /1/user/[user-id]/activities/[resource]/date/[date]/1d/[detail-level]/time/[start-time]/[end-time].json
 			let endpoint = Config.apiUrl
 				+ "/1/user/" + fitbitUserId
-				+ "/activities/" + resource + "/date/"
+				+ "/" + resource + "/date/"
 				+ date + "/1d/" + detailLevel + "/time/"
 				+ startTime + "/" + endTime + ".json";
             
