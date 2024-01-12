@@ -10,7 +10,7 @@ class TimeSeries {
 				+ "/1/user/" + fitbitUserId
 				+ "/" + resource + "/date/"
 				+ startDate + "/" + endDate + ".json";
-            console.log(endpoint);
+
 			return await ApiRequest.sendRequest(accessToken, endpoint);
 		} catch (error) {
 			Logger.error(error);

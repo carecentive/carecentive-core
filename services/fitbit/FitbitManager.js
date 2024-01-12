@@ -139,6 +139,14 @@ class FitbitManager {
 		} catch (error) {
 			Logger.error("Error while processing food log data for user " + userId + ":", error, JSON.stringify(error));
 		}
+
+		try {
+			await this.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.requestType.bodyBmi, 1095);
+			await this.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.requestType.bodyFat, 1095);
+			await this.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.requestType.bodyWeight, 1095);
+		} catch (error) {
+			Logger.error("Error while processing body bmi, fat and weight data for user " + userId + ":", error, JSON.stringify(error));
+		}
 	}
 
 	static async processIntradayData(userId, accessToken, fitbitUserId) {

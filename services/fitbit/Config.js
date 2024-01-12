@@ -16,7 +16,10 @@ module.exports = {
 		heartRateVariability: "hrv",
 		spO2: "spo2",
 		foodLogsCalories: "foods/log/caloriesIn",
-		foodLogsWater: "foods/log/water"
+		foodLogsWater: "foods/log/water",
+		bodyBmi: "body/bmi",
+		bodyFat: "body/fat",
+		bodyWeight: "body/weight"
 	},
 	detailLevel: {
 		oneSecond: "1sec",
