@@ -78,16 +78,16 @@ class DBManager {
         await this.insertTimeSeriesData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, JSON.stringify(response));
     }
 
-    static async storeSummaryData(userId, requestType, range, response) {
-        await this.storeIntradayData(userId, requestType, range, response);
-    }
-
-    static async storeSummaryDataByDate(userId, requestType, response) {
+    static async storeSummaryData(userId, requestType, response) {
         let requestTimestamp = new Date();
         let fromTimestamp = requestTimestamp;
         let toTimestamp = requestTimestamp;
 
         await this.insertTimeSeriesData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, JSON.stringify(response));
+    }
+
+    static async storeSummaryDataByDate(userId, requestType, range, response) {
+        await this.storeIntradayData(userId, requestType, range, response);
     }
 
     static async insertTimeSeriesData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, response) {

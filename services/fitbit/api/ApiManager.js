@@ -17,7 +17,8 @@ class ApiManager {
 	}
 
 	static async getProfile(accessToken, fitbitUserId) {
-		return Profile.getProfile(accessToken, fitbitUserId);
+		let response = await Profile.getProfile(accessToken, fitbitUserId);
+		return response.data;
 	}
 
 	static async getDevices(accessToken, fitbitUserId) {
