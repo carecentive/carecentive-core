@@ -19,7 +19,14 @@ module.exports = {
 		foodLogsWater: "foods/log/water",
 		bodyBmi: "body/bmi",
 		bodyFat: "body/fat",
-		bodyWeight: "body/weight"
+		bodyWeight: "body/weight",
+		activityStatistics: "activities",
+		dailyActivitySummary: "activities/date",
+		activityGoals: "activities/goals/daily",
+		activityLogList: "activities/list",
+		favoriteActivities: "activities/favorite",
+		frequentActivities: "activities/frequent",
+		recentActivities: "activities/recent",
 	},
 	detailLevel: {
 		oneSecond: "1sec",

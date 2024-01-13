@@ -4,6 +4,7 @@ const Profile = require("./resources/Profile");
 const Device = require("./resources/Devices");
 const Intraday = require("./resources/Intraday");
 const TimeSeries = require("./resources/TimeSeries");
+const Summary = require("./resources/Summary");
 
 class ApiManager {
 	static async authorizeUser(authorizationCode) {
@@ -37,6 +38,16 @@ class ApiManager {
 	static async getTimeSeriesByDateRange(accessToken, fitbitUserId, resource, range) {
 		let response = await TimeSeries.getTimeSeriesByDateRange(accessToken, fitbitUserId, resource, range.startDate, range.endDate)
 		return response.data;
+	}
+
+	static async getSummary(accessToken, fitbitUserId, resource) {
+		let response = await Summary.getSummary(accessToken, fitbitUserId, resource);
+		return response.data; 
+	}
+
+	static async getSummaryByDate(accessToken, fitbitUserId, resource, date) {
+		let response = await Summary.getSummaryByDate(accessToken, fitbitUserId, resource, date);
+		return response.data; 
 	}
 }
 

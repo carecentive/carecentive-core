@@ -109,6 +109,7 @@ class FitbitManager {
 		let tokenData;
 		try {
 			tokenData = await this.refreshUserToken(userId);
+			// console.log(tokenData)
 		}
 		catch (error) {
 			Logger.error("Could not refresh access token for user " + userId + ": ", error, JSON.stringify(error));
@@ -116,20 +117,86 @@ class FitbitManager {
 		}
 
 		try {
-			await this.processTimeSeriesData(userId, tokenData.access_token, tokenData.fitbit_user_id);
+			await this.processActivitiesData(userId, tokenData.access_token, tokenData.fitbit_user_id);
 		} catch (error) {
-			Logger.error("Error while processing Time Series data for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing Activities data for user " + userId + ":", error, JSON.stringify(error));
 		}
+
+		// try {
+		// 	await this.processTimeSeriesData(userId, tokenData.access_token, tokenData.fitbit_user_id);
+		// } catch (error) {
+		// 	Logger.error("Error while processing Time Series data for user " + userId + ":", error, JSON.stringify(error));
+		// }
 		
-		try {
-			await this.processIntradayData(userId, tokenData.access_token, tokenData.fitbit_user_id);
-		} catch (error) {
-			Logger.error("Error while processing Intraday data for user " + userId + ":", error, JSON.stringify(error));
-		}
+		// try {
+		// 	await this.processIntradayData(userId, tokenData.access_token, tokenData.fitbit_user_id);
+		// } catch (error) {
+		// 	Logger.error("Error while processing Intraday data for user " + userId + ":", error, JSON.stringify(error));
+		// }
 
 		console.log(RateLimit.processedUsers)
 		console.log("Resetting the number of request processed to 0!");
 		RateLimit.resetRequestProcessed();
+	}
+
+	static async processActivitiesData(userId, accessToken, fitbitUserId) {
+		try {
+			await this.processSingleCall(userId, accessToken, fitbitUserId, Config.requestType.activityStatistics);
+			await this.processSingleCall(userId, accessToken, fitbitUserId, Config.requestType.activityGoals);
+			// The endpoint for Activity Log List is correct but the request failed with status code 400.
+			// Here is the url for the endpoint: https://dev.fitbit.com/build/reference/web-api/activity/get-activity-log-list/
+			await this.processSingleCall(userId, accessToken, fitbitUserId, Config.requestType.activityLogList);
+			await this.processSingleCall(userId, accessToken, fitbitUserId, Config.requestType.favoriteActivities);
+			await this.processSingleCall(userId, accessToken, fitbitUserId, Config.requestType.frequentActivities);
+			await this.processSingleCall(userId, accessToken, fitbitUserId, Config.requestType.recentActivities);
+		} catch (error) {
+			Logger.error("Error while processing Summary or Details data of activities for user " + userId + ":", error, JSON.stringify(error));
+		}
+
+		try {
+			await this.processRequestByDate(userId, accessToken, fitbitUserId, Config.requestType.dailyActivitySummary);
+		} catch (error) {
+			Logger.error("Error while processing Summary or Details data of activities by date for user " + userId + ":", error, JSON.stringify(error));
+		}
+	}
+
+	static async processSingleRequest(userId, accessToken, fitbitUserId, requestType) {
+		console.log("Processing "+ requestType);
+		console.log("Number of request remainig in processing "+ requestType + " : 1");
+		if(RateLimit.isLimitExceeded()) {
+			console.log("Request limit is exceeded!");
+			RateLimit.setProcessedStatus(userId, false);
+			return;
+		}
+
+		let response = await ApiManager.getSummary(accessToken, fitbitUserId, requestType);
+		await DBManager.storeSummaryData(userId, requestType, response);
+
+		RateLimit.requestProcessed();
+		console.log("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
+	}
+
+	static async processRequestByDate(userId, accessToken, fitbitUserId, requestType) {
+		console.log("Processing "+ requestType);
+		let startTimestamp = await FitbitHelper.getLastPolledTimestamp(userId, requestType);
+		let endTimestamp = await FitbitHelper.getLastSyncedTimestamp(accessToken, fitbitUserId);
+		const ranges = FitbitHelper.getTimeRanges(startTimestamp, endTimestamp);
+
+		console.log("RateLimit: "+RateLimit.totalQuota)
+		console.log("Refill: "+RateLimit.remainingSecondsUntilRefill)
+		console.log("Number of request remainig in processing "+ requestType + " : " + ranges.length);
+		for (const range of ranges) {
+			if(RateLimit.isLimitExceeded()) {
+				console.log("Request limit is exceeded!");
+				RateLimit.setProcessedStatus(userId, false);
+				break;
+			}
+			let response = await ApiManager.getSummaryByDate(accessToken, fitbitUserId, requestType, range.date);
+			await DBManager.storeSummaryData(userId, requestType, range, response);
+
+			RateLimit.requestProcessed();
+		}
+		console.log("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
 	}
 
 	static async processTimeSeriesData(userId, accessToken, fitbitUserId) {
