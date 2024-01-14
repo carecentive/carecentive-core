@@ -1,22 +1,11 @@
 const moment = require("moment");
 
-function getDatetimeString(date) {
-	let datetimeString = date.getUTCFullYear() + "-" +
-		("00" + (date.getUTCMonth() + 1)).slice(-2) + "-" +
-		("00" + date.getUTCDate()).slice(-2) + " " +
-		("00" + date.getUTCHours()).slice(-2) + ":" +
-		("00" + date.getUTCMinutes()).slice(-2) + ":" +
-		("00" + date.getUTCSeconds()).slice(-2);
-
-	return datetimeString;
-}
-
 function dateToTimestamp(date) {
-	return Math.round(date / 1000);
+	return moment(date).unix();
 }
 
 function getNowAsTimestamp() {
-	return Math.round(new Date() / 1000);
+	return moment().unix();
 }
 
 function getFormatedDateFromTimestamp(timestamp, format) {
@@ -113,13 +102,11 @@ function isTimestampToday(timestamp) {
 }
 
 function getCurrentDateTime() {
-	return getDatetimeString(new Date());
+	return moment().format('YYYY-MM-DD HH:mm:ss');
 }
 
 function getExpirationDateTime(expiresIn) {
-	let date = new Date();
-	date.setUTCSeconds(date.getUTCSeconds() + expiresIn);
-	return getDatetimeString(date);
+	return moment().add(expiresIn, 'Seconds').format('YYYY-MM-DD HH:mm:ss');
 }
 
 // date yyyy-MM-dd, time: HH:mm:ss
@@ -133,7 +120,6 @@ function getTimestampFromDateAndTime(date, time) {
 }
 
 module.exports = {
-	getDatetimeString,
 	dateToTimestamp,
 	getNowAsTimestamp,
 	getFormatedDateFromTimestamp,

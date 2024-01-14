@@ -18,13 +18,13 @@ class RequestProcessor {
 		let expirationDate = DateTimeUtils.getExpirationDateTime(expiresIn);
 
 		if (user) {
-			DBManager.updateUser(user, fitbitUserId, tokenLastUpdated,
+			await DBManager.updateUser(user, fitbitUserId, tokenLastUpdated,
 				accessToken, expirationDate, refreshToken, scope);
 		} else {
 			// Membership creation date in the fitbit account. This date is fetched once during the creation of the database entry.
 			let memberSince = await FitbitHelper.getMemberSince(accessToken, fitbitUserId);
 
-			DBManager.insertUser(userId, fitbitUserId, memberSince, tokenLastUpdated,
+			await DBManager.insertUser(userId, fitbitUserId, memberSince, tokenLastUpdated,
 				accessToken, expirationDate, refreshToken, scope);
 		}
 	}
@@ -40,12 +40,12 @@ class RequestProcessor {
 				user_id: fitbitUserId
 			} = await ApiManager.refreshToken(user.refresh_token);
 			let tokenLastUpdated = DateTimeUtils.getCurrentDateTime();
-			let expirationDate = DateTimeUtils.getCurrentDateTime(expiresIn);
+			let expirationDate = DateTimeUtils.getExpirationDateTime(expiresIn);
 
 			// Insert updated user data into database
-			DBManager.updateAndFetchUser(user, fitbitUserId, tokenLastUpdated, accessToken,
+			await DBManager.updateAndFetchUser(user, fitbitUserId, tokenLastUpdated, accessToken,
 				expirationDate, refreshToken);
-
+			
 			return user;
 		} else {
 			throw new UserTokenNotFoundError;
