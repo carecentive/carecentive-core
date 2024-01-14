@@ -76,7 +76,7 @@ class FitbitManager {
 		}
 
 		try {
-			await this.processActivitiesData(userId, tokenData.access_token, tokenData.fitbit_user_id);
+			await this.processSummaryData(userId, tokenData.access_token, tokenData.fitbit_user_id);
 		} catch (error) {
 			Logger.error("Error while processing Activities data for user " + userId + ":", error, JSON.stringify(error));
 		}
@@ -98,7 +98,7 @@ class FitbitManager {
 		RateLimit.resetRequestProcessed();
 	}
 
-	static async processActivitiesData(userId, accessToken, fitbitUserId) {
+	static async processSummaryData(userId, accessToken, fitbitUserId) {
 		try {
 			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.activityStatistics);
 			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.activityGoals);
@@ -113,9 +113,41 @@ class FitbitManager {
 		}
 
 		try {
-			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.requestType.dailyActivitySummary);
+			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.requestType.activitySummaryByDate);
 		} catch (error) {
 			Logger.error("Error while processing Summary or Details data of activities by date for user " + userId + ":", error, JSON.stringify(error));
+		}
+
+		try {
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.bodyWeightGoals);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.bodyFatGoals);
+		} catch (error) {
+			Logger.error("Error while processing Summary or Details data of body for user " + userId + ":", error, JSON.stringify(error));
+		}
+
+		try {
+			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.requestType.bodyWeightSummaryByDate);
+			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.requestType.bodyFatSummaryByDate);
+		} catch (error) {
+			Logger.error("Error while processing Summary or Details data of body by date for user " + userId + ":", error, JSON.stringify(error));
+		}
+
+		try {
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.favoriteFoods);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.frequentFoods);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.recentFoods);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.foodGoals);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.foodWaterGoals);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.meals);
+		} catch (error) {
+			Logger.error("Error while processing Summary or Details data of food for user " + userId + ":", error, JSON.stringify(error));
+		}
+
+		try {
+			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.requestType.foodSummaryByDate);
+			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.requestType.foodWaterSummaryByDate);
+		} catch (error) {
+			Logger.error("Error while processing Summary or Details data of food by date for user " + userId + ":", error, JSON.stringify(error));
 		}
 	}
 

@@ -84,7 +84,7 @@ class RequestProcessor {
 				break;
 			}
 			let response = await ApiManager.getSummaryByDate(accessToken, fitbitUserId, requestType, range.date);
-			await DBManager.storeSummaryData(userId, requestType, range, response);
+			await DBManager.storeSummaryDataByDate(userId, requestType, range, response);
 
 			RateLimit.requestProcessed();
 		}
