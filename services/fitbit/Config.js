@@ -4,7 +4,7 @@ module.exports = {
 	grantTypeAuthorizationCode: "authorization_code",
 	grantTypeRefreshToken: "refresh_token",
 	contentType: "application/x-www-form-urlencoded",
-	requestType: {
+	resource: {
 		heart: "activities/heart",
 		activeZoneMinutes: "activities/active-zone-minutes",
 		calories: "activities/calories",

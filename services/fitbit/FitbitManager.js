@@ -100,52 +100,52 @@ class FitbitManager {
 
 	static async processSummaryData(userId, accessToken, fitbitUserId) {
 		try {
-			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.activityStatistics);
-			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.activityGoals);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.activityStatistics);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.activityGoals);
 			// The endpoint for Activity Log List is correct but the request failed with status code 400.
 			// Here is the url for the endpoint: https://dev.fitbit.com/build/reference/web-api/activity/get-activity-log-list/
 			// await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.activityLogList);
-			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.favoriteActivities);
-			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.frequentActivities);
-			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.recentActivities);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.favoriteActivities);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.frequentActivities);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.recentActivities);
 		} catch (error) {
 			Logger.error("Error while processing Summary or Details data of activities for user " + userId + ":", error, JSON.stringify(error));
 		}
 
 		try {
-			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.requestType.activitySummaryByDate);
+			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.resource.activitySummaryByDate);
 		} catch (error) {
 			Logger.error("Error while processing Summary or Details data of activities by date for user " + userId + ":", error, JSON.stringify(error));
 		}
 
 		try {
-			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.bodyWeightGoals);
-			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.bodyFatGoals);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.bodyWeightGoals);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.bodyFatGoals);
 		} catch (error) {
 			Logger.error("Error while processing Summary or Details data of body for user " + userId + ":", error, JSON.stringify(error));
 		}
 
 		try {
-			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.requestType.bodyWeightSummaryByDate);
-			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.requestType.bodyFatSummaryByDate);
+			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.resource.bodyWeightSummaryByDate);
+			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.resource.bodyFatSummaryByDate);
 		} catch (error) {
 			Logger.error("Error while processing Summary or Details data of body by date for user " + userId + ":", error, JSON.stringify(error));
 		}
 
 		try {
-			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.favoriteFoods);
-			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.frequentFoods);
-			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.recentFoods);
-			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.foodGoals);
-			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.foodWaterGoals);
-			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.meals);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.favoriteFoods);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.frequentFoods);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.recentFoods);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.foodGoals);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.foodWaterGoals);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.meals);
 		} catch (error) {
 			Logger.error("Error while processing Summary or Details data of food for user " + userId + ":", error, JSON.stringify(error));
 		}
 
 		try {
-			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.requestType.foodSummaryByDate);
-			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.requestType.foodWaterSummaryByDate);
+			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.resource.foodSummaryByDate);
+			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.resource.foodWaterSummaryByDate);
 		} catch (error) {
 			Logger.error("Error while processing Summary or Details data of food by date for user " + userId + ":", error, JSON.stringify(error));
 		}
@@ -153,16 +153,16 @@ class FitbitManager {
 
 	static async processTimeSeriesData(userId, accessToken, fitbitUserId) {
 		try {
-			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.requestType.foodLogsCalories, 1095);
-			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.requestType.foodLogsWater, 1095);
+			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.resource.foodLogsCalories, 1095);
+			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.resource.foodLogsWater, 1095);
 		} catch (error) {
 			Logger.error("Error while processing food log data for user " + userId + ":", error, JSON.stringify(error));
 		}
 
 		try {
-			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.requestType.bodyBmi, 1095);
-			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.requestType.bodyFat, 1095);
-			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.requestType.bodyWeight, 1095);
+			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.resource.bodyBmi, 1095);
+			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.resource.bodyFat, 1095);
+			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.resource.bodyWeight, 1095);
 		} catch (error) {
 			Logger.error("Error while processing body bmi, fat and weight data for user " + userId + ":", error, JSON.stringify(error));
 		}
@@ -170,31 +170,31 @@ class FitbitManager {
 
 	static async processIntradayData(userId, accessToken, fitbitUserId) {
 		try {
-			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.requestType.heart, Config.detailLevel.oneSecond);
+			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.resource.heart, Config.detailLevel.oneSecond);
 		} catch (error) {
 			Logger.error("Error while processing heart rate data for user " + userId + ":", error, JSON.stringify(error));
 		}
 
 		try {
-			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.requestType.activeZoneMinutes, Config.detailLevel.oneMinute);
+			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.resource.activeZoneMinutes, Config.detailLevel.oneMinute);
 		} catch (error) {
 			Logger.error("Error while processing active zone minutes data for user " + userId + ":", error, JSON.stringify(error));
 		}
 
 		try {
-			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.requestType.calories, Config.detailLevel.oneMinute);
-			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.requestType.distance, Config.detailLevel.oneMinute);
-			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.requestType.elevation, Config.detailLevel.oneMinute);
-			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.requestType.floors, Config.detailLevel.oneMinute);
-			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.requestType.steps, Config.detailLevel.oneMinute);
+			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.resource.calories, Config.detailLevel.oneMinute);
+			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.resource.distance, Config.detailLevel.oneMinute);
+			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.resource.elevation, Config.detailLevel.oneMinute);
+			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.resource.floors, Config.detailLevel.oneMinute);
+			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.resource.steps, Config.detailLevel.oneMinute);
 		} catch (error) {
 			Logger.error("Error while processing activities data for user " + userId + ":", error, JSON.stringify(error));
 		}
 
 		try {
-			await RequestProcessor.processIntradayByInterval(userId, accessToken, fitbitUserId, Config.requestType.breathingRate, 30);
-			await RequestProcessor.processIntradayByInterval(userId, accessToken, fitbitUserId, Config.requestType.heartRateVariability, 30);
-			await RequestProcessor.processIntradayByInterval(userId, accessToken, fitbitUserId, Config.requestType.spO2, 30);
+			await RequestProcessor.processIntradayByInterval(userId, accessToken, fitbitUserId, Config.resource.breathingRate, 30);
+			await RequestProcessor.processIntradayByInterval(userId, accessToken, fitbitUserId, Config.resource.heartRateVariability, 30);
+			await RequestProcessor.processIntradayByInterval(userId, accessToken, fitbitUserId, Config.resource.spO2, 30);
 		} catch (error) {
 			Logger.error("Error while processing intraday data by interval for user " + userId + ":", error, JSON.stringify(error));
 		}
