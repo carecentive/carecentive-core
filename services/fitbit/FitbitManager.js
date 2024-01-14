@@ -104,7 +104,7 @@ class FitbitManager {
 			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.activityGoals);
 			// The endpoint for Activity Log List is correct but the request failed with status code 400.
 			// Here is the url for the endpoint: https://dev.fitbit.com/build/reference/web-api/activity/get-activity-log-list/
-			// await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.requestType.activityLogList);
+			// await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.activityLogList);
 			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.favoriteActivities);
 			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.frequentActivities);
 			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.recentActivities);
@@ -149,6 +149,19 @@ class FitbitManager {
 		} catch (error) {
 			Logger.error("Error while processing Summary or Details data of food by date for user " + userId + ":", error, JSON.stringify(error));
 		}
+		
+		try {
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.sleepGoals);
+		} catch (error) {
+			Logger.error("Error while processing sleep goals for user " + userId + ":", error, JSON.stringify(error));
+		}
+
+		try {
+			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.resource.coreTemperatureByDate);
+			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.resource.skinTemperatureByDate);
+		} catch (error) {
+			Logger.error("Error while processing temperature for user " + userId + ":", error, JSON.stringify(error));
+		}
 	}
 
 	static async processTimeSeriesData(userId, accessToken, fitbitUserId) {
@@ -165,6 +178,20 @@ class FitbitManager {
 			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.resource.bodyWeight, 1095);
 		} catch (error) {
 			Logger.error("Error while processing body bmi, fat and weight data for user " + userId + ":", error, JSON.stringify(error));
+		}
+
+		try {
+			// The endpoint for Cardio Fitness Score(VO2 Max) is correct but the request failed with status code 403.
+			// Here is the url for the endpoint: https://dev.fitbit.com/build/reference/web-api/cardio-fitness-score/get-vo2max-summary-by-interval/
+			// await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.resource.cardioFitnessScore, 30);
+		} catch (error) {
+			Logger.error("Error while processing cardio fitness score for user " + userId + ":", error, JSON.stringify(error));
+		}
+
+		try {
+			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.resource.sleep, 100);
+		} catch (error) {
+			Logger.error("Error while processing sleep data for user " + userId + ":", error, JSON.stringify(error));
 		}
 	}
 

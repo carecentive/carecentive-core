@@ -39,6 +39,11 @@ module.exports = {
 		favoriteActivities: "activities/favorite",
 		frequentActivities: "activities/frequent",
 		recentActivities: "activities/recent",
+		cardioFitnessScore: "cardioscore",
+		sleep: "sleep",
+		sleepGoals: "sleep/goal",
+		coreTemperatureByDate: "temp/core/date",
+		skinTemperatureByDate: "temp/skin/date"
 	},
 	detailLevel: {
 		oneSecond: "1sec",
