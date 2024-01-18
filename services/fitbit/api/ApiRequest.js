@@ -104,8 +104,14 @@ class ApiRequest {
             }
         } catch (error) {
             if(error.response && error.response.status == CONSTANTS.HTTP_STATUS.TOO_MANY_REQUEST) {
-                Logger.debug("You have reached the rate limit. Please wait until it is being refilled (" 
-                + RateLimit.remainingSecondsUntilRefill + " Seconds) and try again.");
+                let refill = 3600;
+                
+                if(RateLimit.remainingSecondsUntilRefill) {
+                    refill = RateLimit.remainingSecondsUntilRefill;
+                }
+
+                Logger.error("You have reached the rate limit. Please wait until it is being refilled (approximately " 
+                + refill + " Seconds) and try again.");
             }
             Logger.error("Error while sending API request!");
             throw new Error(error);

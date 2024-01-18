@@ -90,7 +90,7 @@ class FitbitManager {
 			return;
 		}
 
-		Logger.debug(RateLimit.processedUsers)
+		Logger.debug(JSON.stringify(RateLimit.processedUsers))
 		Logger.debug("Resetting the number of request processed to 0!");
 		RateLimit.resetRequestProcessed();
 	}
