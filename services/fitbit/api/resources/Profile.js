@@ -11,16 +11,11 @@ class Profile {
 	 * @returns 
 	 */
 	static async getProfile(accessToken, fitbitUserId) {
-		try {
-			let endpoint = Config.apiUrl
-				+ "/1/user/" + fitbitUserId
-				+ "/" + "profile.json";
+		let endpoint = Config.apiUrl
+			+ "/1/users/" + fitbitUserId
+			+ "/" + "profile.json";
 
-			return await ApiRequest.sendRequest(accessToken, endpoint);
-		} catch (error) {
-			Logger.error(error);
-			throw error;
-		}
+		return await ApiRequest.sendRequest(accessToken, endpoint);
 	}
 }
 

@@ -25,7 +25,7 @@ class FitbitHelper {
 				return DateTimeUtils.getCurrentDateTime();
 			}
 		} catch (error) {
-			Logger.error(error);
+			Logger.error("Error while processing membership date");
 			throw error;
 		}
 	}
@@ -38,7 +38,7 @@ class FitbitHelper {
 			}
 			return DateTimeUtils.getTimestampFromISOTimestamp(lastPolledEntry.to_timestamp);
 		} catch (error) {
-			Logger.error(error);
+			Logger.error("Error while processing last polled date for user " + userId);
 			throw error;
 		}
 
@@ -72,21 +72,11 @@ class FitbitHelper {
 	}
 
 	static getTimeRanges(startTimestamp, endTimestamp) {
-		try {
-			return DateTimeUtils.getTimeRanges(startTimestamp, endTimestamp);
-		} catch (error) {
-			Logger.error(error);
-			throw error;
-		}
+		return DateTimeUtils.getTimeRanges(startTimestamp, endTimestamp);
 	}
 
 	static getDateAndTimeRanges(startTimestamp, endTimestamp, maximumRange) {
-		try {
-			return DateTimeUtils.getDateAndTimeRanges(startTimestamp, endTimestamp, maximumRange);
-		} catch (error) {
-			Logger.error(error);
-			throw error;
-		}
+		return DateTimeUtils.getDateAndTimeRanges(startTimestamp, endTimestamp, maximumRange);
 	}
 }
 

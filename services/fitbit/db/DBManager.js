@@ -91,19 +91,14 @@ class DBManager {
     }
 
     static async insertTimeSeriesData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, response) {
-        try {
-            await FitbitData.query().insert({
-                user_id: userId,
-                request_type: requestType,
-                request_timestamp: requestTimestamp,
-                from_timestamp: fromTimestamp,
-                to_timestamp: toTimestamp,
-                response: response
-            });
-        } catch (error) {
-            Logger.error(error);
-            throw error;
-        }
+        await FitbitData.query().insert({
+            user_id: userId,
+            request_type: requestType,
+            request_timestamp: requestTimestamp,
+            from_timestamp: fromTimestamp,
+            to_timestamp: toTimestamp,
+            response: response
+        });
     };
 }
 

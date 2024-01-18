@@ -10,19 +10,13 @@ class FitbitManager {
 		try {
 			await RequestProcessor.processRegistration(authorizationCode, userId);
 		} catch (error) {
-			Logger.error(error);
+			Logger.error("Could not register user with user ID " + userId + ": ", error, JSON.stringify(error));
 			throw error;
 		}
 	}
 
 	static async getUpdatedRefreshToken(userId) {
-		try {
-			let user = await RequestProcessor.processRefreshToken(userId)
-			return user;
-		} catch (error) {
-			Logger.error(error);
-			throw error;
-		}
+		return RequestProcessor.processRefreshToken(userId);
 	}
 
 	static async pollAllUsersDataWithScheduler() {
@@ -35,7 +29,7 @@ class FitbitManager {
 		if(RateLimit.isAlreadySet) {
 			let cronExpression = "*/"+ RateLimit.remainingSecondsUntilRefill +" * * * * *";
 			
-			console.log("Invoking Scheduler: The scheduler will execute in every " 
+			Logger.debug("Invoking Scheduler: The scheduler will execute in every " 
 			+ RateLimit.remainingSecondsUntilRefill + " seconds until all data is being processed!"
 			+ "In each execution, ("+ RateLimit.totalQuota + " - 10%) requests per user will be processed!");
 	
@@ -47,17 +41,17 @@ class FitbitManager {
 	static async pollAllUsersData() {
 		let users = await DBManager.getAllUsers();
 
-		console.log("Total number of users: " + users.length);
+		Logger.debug("Total number of users: " + users.length);
 
 		RateLimit.initProcessedUsers(users);
 
 		for (const user of users) {
-			console.log("Processing user with user id: " + user.user_id);
+			Logger.debug("Processing user with user id: " + user.user_id);
 			await this.pollUserData(user.user_id);
 		}
 
 		if(RateLimit.isAllDataProcessed()) {
-			console.log("All users processed sucessfully!");
+			Logger.debug("All users processed sucessfully!");
 			if(Scheduler.task) {
 				Scheduler.stop();
 				process.exit();
@@ -78,23 +72,26 @@ class FitbitManager {
 		try {
 			await this.processSummaryData(userId, tokenData.access_token, tokenData.fitbit_user_id);
 		} catch (error) {
-			Logger.error("Error while processing Activities data for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing summary data for user " + userId + ":", error, JSON.stringify(error));
+			return;
 		}
 
 		try {
 			await this.processTimeSeriesData(userId, tokenData.access_token, tokenData.fitbit_user_id);
 		} catch (error) {
 			Logger.error("Error while processing Time Series data for user " + userId + ":", error, JSON.stringify(error));
+			return;
 		}
 		
 		try {
 			await this.processIntradayData(userId, tokenData.access_token, tokenData.fitbit_user_id);
 		} catch (error) {
 			Logger.error("Error while processing Intraday data for user " + userId + ":", error, JSON.stringify(error));
+			return;
 		}
 
-		console.log(RateLimit.processedUsers)
-		console.log("Resetting the number of request processed to 0!");
+		Logger.debug(RateLimit.processedUsers)
+		Logger.debug("Resetting the number of request processed to 0!");
 		RateLimit.resetRequestProcessed();
 	}
 
@@ -109,27 +106,31 @@ class FitbitManager {
 			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.frequentActivities);
 			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.recentActivities);
 		} catch (error) {
-			Logger.error("Error while processing Summary or Details data of activities for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing Summary or Details data of activities for user " + userId);
+			throw error;
 		}
 
 		try {
 			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.resource.activitySummaryByDate);
 		} catch (error) {
-			Logger.error("Error while processing Summary or Details data of activities by date for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing Summary or Details data of activities by date for user " + userId);
+			throw error;
 		}
 
 		try {
 			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.bodyWeightGoals);
 			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.bodyFatGoals);
 		} catch (error) {
-			Logger.error("Error while processing Summary or Details data of body for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing Summary or Details data of body for user " + userId);
+			throw error;
 		}
 
 		try {
 			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.resource.bodyWeightSummaryByDate);
 			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.resource.bodyFatSummaryByDate);
 		} catch (error) {
-			Logger.error("Error while processing Summary or Details data of body by date for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing Summary or Details data of body by date for user " + userId);
+			throw error;
 		}
 
 		try {
@@ -140,27 +141,31 @@ class FitbitManager {
 			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.foodWaterGoals);
 			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.meals);
 		} catch (error) {
-			Logger.error("Error while processing Summary or Details data of food for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing Summary or Details data of food for user " + userId);
+			throw error;
 		}
 
 		try {
 			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.resource.foodSummaryByDate);
 			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.resource.foodWaterSummaryByDate);
 		} catch (error) {
-			Logger.error("Error while processing Summary or Details data of food by date for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing Summary or Details data of food by date for user " + userId);
+			throw error;
 		}
 		
 		try {
 			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.sleepGoals);
 		} catch (error) {
-			Logger.error("Error while processing sleep goals for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing sleep goals for user " + userId);
+			throw error;
 		}
 
 		try {
 			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.resource.coreTemperatureByDate);
 			await RequestProcessor.processRequestByDate(userId, accessToken, fitbitUserId, Config.resource.skinTemperatureByDate);
 		} catch (error) {
-			Logger.error("Error while processing temperature for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing temperature for user " + userId);
+			throw error;
 		}
 	}
 
@@ -169,7 +174,8 @@ class FitbitManager {
 			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.resource.foodLogsCalories, 1095);
 			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.resource.foodLogsWater, 1095);
 		} catch (error) {
-			Logger.error("Error while processing food log data for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing food log data for user " + userId);
+			throw error;
 		}
 
 		try {
@@ -177,7 +183,8 @@ class FitbitManager {
 			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.resource.bodyFat, 1095);
 			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.resource.bodyWeight, 1095);
 		} catch (error) {
-			Logger.error("Error while processing body bmi, fat and weight data for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing body bmi, fat and weight data for user " + userId);
+			throw error;
 		}
 
 		try {
@@ -185,13 +192,15 @@ class FitbitManager {
 			// Here is the url for the endpoint: https://dev.fitbit.com/build/reference/web-api/cardio-fitness-score/get-vo2max-summary-by-interval/
 			// await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.resource.cardioFitnessScore, 30);
 		} catch (error) {
-			Logger.error("Error while processing cardio fitness score for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing cardio fitness score for user " + userId);
+			throw error;
 		}
 
 		try {
 			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.resource.sleep, 100);
 		} catch (error) {
-			Logger.error("Error while processing sleep data for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing sleep data for user " + userId);
+			throw error;
 		}
 	}
 
@@ -199,13 +208,15 @@ class FitbitManager {
 		try {
 			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.resource.heart, Config.detailLevel.oneSecond);
 		} catch (error) {
-			Logger.error("Error while processing heart rate data for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing heart rate data for user " + userId);
+			throw error;
 		}
 
 		try {
 			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.resource.activeZoneMinutes, Config.detailLevel.oneMinute);
 		} catch (error) {
-			Logger.error("Error while processing active zone minutes data for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing active zone minutes data for user " + userId);
+			throw error;
 		}
 
 		try {
@@ -215,7 +226,8 @@ class FitbitManager {
 			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.resource.floors, Config.detailLevel.oneMinute);
 			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.resource.steps, Config.detailLevel.oneMinute);
 		} catch (error) {
-			Logger.error("Error while processing activities data for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing activities data for user " + userId);
+			throw error;
 		}
 
 		try {
@@ -223,7 +235,8 @@ class FitbitManager {
 			await RequestProcessor.processIntradayByInterval(userId, accessToken, fitbitUserId, Config.resource.heartRateVariability, 30);
 			await RequestProcessor.processIntradayByInterval(userId, accessToken, fitbitUserId, Config.resource.spO2, 30);
 		} catch (error) {
-			Logger.error("Error while processing intraday data by interval for user " + userId + ":", error, JSON.stringify(error));
+			Logger.error("Error while processing intraday data by interval for user " + userId);
+			throw error;
 		}
 	}
 }

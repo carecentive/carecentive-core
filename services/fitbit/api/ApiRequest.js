@@ -36,11 +36,8 @@ class ApiRequest {
                 throw new FitbitApiError(response.status + " (" + response.data.errors + ")");
             }
         } catch (error) {
-            // Error class is used to get the line number. 
-            // In other words, it is easy to debug where the error is. 
-            const err = new Error(error);
-            Logger.error(err);
-            throw err;
+            Logger.error("Error while authorizing user!");
+            throw new Error(error);
         }
     }
 
@@ -72,11 +69,8 @@ class ApiRequest {
                 throw new FitbitApiError(response.status + " (" + response.data.errors + ")");
             }
         } catch (error) {
-            // Error class is used to get the line number. 
-            // In other words, it is easy to debug where the error is.
-            const err = new Error(error);
-            Logger.error(err);
-            throw err;
+            Logger.error("Error while retrieving the refresh token!");
+            throw new Error(error);
         }
     }
 
@@ -109,17 +103,12 @@ class ApiRequest {
                 throw new FitbitApiError(response.status + " (" + response.data.errors + ")");
             }
         } catch (error) {
-            // Error class is used to get the line number. 
-            // In other words, it is easy to debug where the error is.
-            const err = new Error(error);
-            
             if(error.response && error.response.status == CONSTANTS.HTTP_STATUS.TOO_MANY_REQUEST) {
-                console.error("You have reached the rate limit. Please wait until it is being refilled (" 
+                Logger.debug("You have reached the rate limit. Please wait until it is being refilled (" 
                 + RateLimit.remainingSecondsUntilRefill + " Seconds) and try again.");
             }
-            
-            Logger.error(err);
-            throw err;
+            Logger.error("Error while sending API request!");
+            throw new Error(error);
         }
     }
 }

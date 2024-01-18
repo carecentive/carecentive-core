@@ -4,30 +4,20 @@ const Config = require("../../Config");
 
 class Summary {
     static async getSummary(accessToken, fitbitUserId, resource) {
-        try {
-			let endpoint = Config.apiUrl
-				+ "/1/user/" + fitbitUserId
-				+ "/" + resource + ".json";
+		let endpoint = Config.apiUrl
+			+ "/1/user/" + fitbitUserId
+			+ "/" + resource + ".json";
 
-			return await ApiRequest.sendRequest(accessToken, endpoint);
-		} catch (error) {
-			Logger.error(error);
-			throw error;
-		}
+		return await ApiRequest.sendRequest(accessToken, endpoint);
     }
 
 	static async getSummaryByDate(accessToken, fitbitUserId, resource, date) {
-        try {
-			let endpoint = Config.apiUrl
-				+ "/1/user/" + fitbitUserId
-				+ "/" + resource + "/"
-				+ date + ".json";
-				
-			return await ApiRequest.sendRequest(accessToken, endpoint);
-		} catch (error) {
-			Logger.error(error);
-			throw error;
-		}
+		let endpoint = Config.apiUrl
+			+ "/1/user/" + fitbitUserId
+			+ "/" + resource + "/"
+			+ date + ".json";
+			
+		return await ApiRequest.sendRequest(accessToken, endpoint);
     }
 }
 

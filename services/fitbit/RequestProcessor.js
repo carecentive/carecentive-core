@@ -4,6 +4,7 @@ const FitbitHelper = require("./FitbitHelper");
 const RateLimit = require("./api/RateLimit");
 const DateTimeUtils = require("./DateTimeUtils");
 const { UserTokenNotFoundError } = require("../../source/Errors");
+const Logger = require("../../source/Loggers");
 
 class RequestProcessor {
 	static async processRegistration(authorizationCode, userId) {
@@ -53,10 +54,10 @@ class RequestProcessor {
 	}
 
     static async processSingleRequest(userId, accessToken, fitbitUserId, requestType) {
-		console.log("Processing "+ requestType);
-		console.log("Number of request remainig in processing "+ requestType + " : 1");
+		Logger.debug("Processing "+ requestType);
+		Logger.debug("Number of request remainig in processing "+ requestType + " : 1");
 		if(RateLimit.isLimitExceeded()) {
-			console.log("Request limit is exceeded!");
+			Logger.debug("Request limit is exceeded!");
 			RateLimit.setProcessedStatus(userId, false);
 			return;
 		}
@@ -65,21 +66,21 @@ class RequestProcessor {
 		await DBManager.storeSummaryData(userId, requestType, response);
 
 		RateLimit.requestProcessed();
-		console.log("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
+		Logger.debug("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
 	}
 
 	static async processRequestByDate(userId, accessToken, fitbitUserId, requestType) {
-		console.log("Processing "+ requestType);
+		Logger.debug("Processing "+ requestType);
 		let startTimestamp = await FitbitHelper.getLastPolledTimestamp(userId, requestType);
 		let endTimestamp = await FitbitHelper.getLastSyncedTimestamp(accessToken, fitbitUserId);
 		const ranges = FitbitHelper.getTimeRanges(startTimestamp, endTimestamp);
 
-		console.log("RateLimit: "+RateLimit.totalQuota)
-		console.log("Refill: "+RateLimit.remainingSecondsUntilRefill)
-		console.log("Number of request remainig in processing "+ requestType + " : " + ranges.length);
+		Logger.debug("RateLimit: "+RateLimit.totalQuota)
+		Logger.debug("Refill: "+RateLimit.remainingSecondsUntilRefill)
+		Logger.debug("Number of request remainig in processing "+ requestType + " : " + ranges.length);
 		for (const range of ranges) {
 			if(RateLimit.isLimitExceeded()) {
-				console.log("Request limit is exceeded!");
+				Logger.debug("Request limit is exceeded!");
 				RateLimit.setProcessedStatus(userId, false);
 				break;
 			}
@@ -88,21 +89,21 @@ class RequestProcessor {
 
 			RateLimit.requestProcessed();
 		}
-		console.log("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
+		Logger.debug("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
 	}
 
 	static async processIntraday(userId, accessToken, fitbitUserId, requestType, detailLevel) {
-		console.log("Processing "+ requestType);
+		Logger.debug("Processing "+ requestType);
 		let startTimestamp = await FitbitHelper.getLastPolledTimestamp(userId, requestType);
 		let endTimestamp = await FitbitHelper.getLastSyncedTimestamp(accessToken, fitbitUserId);
 		const ranges = FitbitHelper.getTimeRanges(startTimestamp, endTimestamp);
 
-		console.log("RateLimit: "+RateLimit.totalQuota)
-		console.log("Refill: "+RateLimit.remainingSecondsUntilRefill)
-		console.log("Number of request remainig in processing "+ requestType + " : " + ranges.length);
+		Logger.debug("RateLimit: "+RateLimit.totalQuota)
+		Logger.debug("Refill: "+RateLimit.remainingSecondsUntilRefill)
+		Logger.debug("Number of request remainig in processing "+ requestType + " : " + ranges.length);
 		for (const range of ranges) {
 			if(RateLimit.isLimitExceeded()) {
-				console.log("Request limit is exceeded!");
+				Logger.debug("Request limit is exceeded!");
 				RateLimit.setProcessedStatus(userId, false);
 				break;
 			}
@@ -111,21 +112,21 @@ class RequestProcessor {
 
 			RateLimit.requestProcessed();
 		}
-		console.log("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
+		Logger.debug("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
 	}
 
 	static async processIntradayByInterval(userId, accessToken, fitbitUserId, requestType, maximumRange) {
-		console.log("Processing "+ requestType);
+		Logger.debug("Processing "+ requestType);
 		let startTimestamp = await FitbitHelper.getLastPolledTimestamp(userId, requestType);
 		let endTimestamp = await FitbitHelper.getLastSyncedTimestamp(accessToken, fitbitUserId);
 		const ranges = FitbitHelper.getDateAndTimeRanges(startTimestamp, endTimestamp, maximumRange);
 
-		console.log("RateLimit: "+RateLimit.totalQuota)
-		console.log("Refill: "+RateLimit.remainingSecondsUntilRefill)
-		console.log("Number of request remainig in processing "+ requestType + " : " + ranges.length);
+		Logger.debug("RateLimit: "+RateLimit.totalQuota)
+		Logger.debug("Refill: "+RateLimit.remainingSecondsUntilRefill)
+		Logger.debug("Number of request remainig in processing "+ requestType + " : " + ranges.length);
 		for (const range of ranges) {
 			if(RateLimit.isLimitExceeded()) {
-				console.log("Request limit is exceeded!");
+				Logger.debug("Request limit is exceeded!");
 				RateLimit.setProcessedStatus(userId, false);
 				break;
 			}
@@ -134,21 +135,21 @@ class RequestProcessor {
 
 			RateLimit.requestProcessed();
 		}
-		console.log("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
+		Logger.debug("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
 	}
 
 	static async processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, requestType, maximumRange) {
-		console.log("Processing "+ requestType);
+		Logger.debug("Processing "+ requestType);
 		let startTimestamp = await FitbitHelper.getLastPolledTimestamp(userId, requestType);
 		let endTimestamp = await FitbitHelper.getLastSyncedTimestamp(accessToken, fitbitUserId);
 		const ranges = FitbitHelper.getDateAndTimeRanges(startTimestamp, endTimestamp, maximumRange);
 
-		console.log("RateLimit: "+RateLimit.totalQuota)
-		console.log("Refill: "+RateLimit.remainingSecondsUntilRefill)
-		console.log("Number of request remainig in processing "+ requestType + " : " + ranges.length);
+		Logger.debug("RateLimit: "+RateLimit.totalQuota)
+		Logger.debug("Refill: "+RateLimit.remainingSecondsUntilRefill)
+		Logger.debug("Number of request remainig in processing "+ requestType + " : " + ranges.length);
 		for (const range of ranges) {
 			if(RateLimit.isLimitExceeded()) {
-				console.log("Request limit is exceeded!");
+				Logger.debug("Request limit is exceeded!");
 				RateLimit.setProcessedStatus(userId, false);
 				break;
 			}
@@ -157,7 +158,7 @@ class RequestProcessor {
 
 			RateLimit.requestProcessed();
 		}
-		console.log("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
+		Logger.debug("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
 	}
 }
 

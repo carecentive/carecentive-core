@@ -1,5 +1,6 @@
 const Cron = require("node-cron");
 const { SchedulerError } = require("../../source/Errors");
+const Logger = require("../../source/Loggers");
 
 class Scheduler {
     static task;
@@ -32,7 +33,7 @@ class Scheduler {
             throw new SchedulerError("Initialize the scheduler by calling init before starting the task!");
         }
 
-        console.log("Starting the scheduler task!");
+        Logger.debug("Starting the scheduler task!");
         this.task.start();
     }
 
@@ -41,7 +42,7 @@ class Scheduler {
             throw new SchedulerError("There is no running task to stop!");
         }
 
-        console.log("Stoping the scheduler task!");
+        Logger.debug("Stoping the scheduler task!");
         this.task.stop();
     }
 }
