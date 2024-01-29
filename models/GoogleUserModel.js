@@ -1,6 +1,6 @@
 const { Model } = require("objection");
 
-const User = require("@carecentive/carecentive-core/models/User");
+const User = require("./User");
 
 class GoogleUser extends Model {
   static get tableName() {
