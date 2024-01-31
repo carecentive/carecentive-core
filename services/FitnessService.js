@@ -6,21 +6,30 @@ const fitness = google.fitness("v1");
 const ghelper = require("../source/google");
 const GoogleUser = require("../models/GoogleUserModel");
 const GoogleData = require("../models/GoogleDataModel");
+const { FitnessError } = require("../source/Errors");
 
 class GoogleFitnessService {
-  //Returns Google Authorization Tokens for User
+  /**
+   * Get Google Authorization Tokens for User
+   * @param {*} userId
+   */
   static async getUser(userId) {
     let user = await GoogleUser.query().findOne({ user_id: userId });
     return user;
   }
 
-  //Returns a list of all google fitness users in the database
+  /**
+   * Get a list of all google fitness users in the database
+   */
   static async getAllGoogleUser() {
     let allusers = await GoogleUser.query();
     return allusers;
   }
 
-  // Add/Update Google Authorization token for User
+  /**
+   * Add/Update Google Authorization token for User
+   * @param {*} user
+   */
   static async addUser(user) {
     let oldUser = await GoogleUser.query().findOne({ user_id: user.user_id });
     if (oldUser) {
@@ -36,7 +45,10 @@ class GoogleFitnessService {
     }
   }
 
-  // Revoke Google Authorization Token for User
+  /**
+   * Revoke Google Authorization Token for User
+   * @param {*} user_id
+   */
   static async removeUser(user_id) {
     let user = await this.getUser(user_id);
     let oauth2Client = ghelper.getAuthClient(user);
@@ -49,19 +61,27 @@ class GoogleFitnessService {
     if (deleted) {
       return;
     } else {
-      throw new Error("GOOGLE_USER_DELETION_ERROR");
+      throw new FitnessError("Error deleting Google user");
     }
   }
 
-  //Returns List of Datatypes available in our database
-  static async fetchDatatypes(userId) {
+  /**
+   * Get List of Datatypes available in our database
+   */
+  static async fetchDatatypes() {
     const result = await GoogleData.query()
       .distinct("datatype")
       .pluck("datatype");
     return result;
   }
 
-  //Returns Array of User Fitness Data based on provided query
+  /**
+   * Get Array of User Fitness Data based on provided query
+   * @param {*} userId
+   * @param {*} from (YYYY-MM-DD)
+   * @param {*} to (YYYY-MM-DD)
+   * @param {*} types ([Array of data types])
+   */
   static async fetchData(userId, from, to, types) {
     let from_date = new Date(from).getTime() / 1000;
     let to_date = new Date(to).getTime() / 1000;
@@ -85,8 +105,11 @@ class GoogleFitnessService {
     return result;
   }
 
-  //Returns date range necessary to fetch Fitness data from Google
-  //If user already has past data, the date from last data will be used as start date
+  /**
+   * Get date range necessary to fetch Fitness data from Google
+   * If user already has past data, the date from last data will be used as start date
+   * @param {*} userId
+   */
   static async fetchLastData(userId) {
     let fromDate = moment().format("YYYY-MM-DD");
     let toDate = moment().add(1, "days").format("YYYY-MM-DD");
@@ -105,14 +128,20 @@ class GoogleFitnessService {
     return { fromDate, toDate };
   }
 
-  //Calls Fitness API for User with provided Date Range
+  /**
+   * Calls Fitness API for User with provided Date Range
+   * @param {*} googleUser
+   */
   static async syncData(googleUser) {
     let { fromDate, toDate } = await this.fetchLastData(userId);
     await this.fetchFitnessData(googleUser, fromDate, toDate);
     return { message: "Data fetched from Google Fitness" };
   }
 
-  //Calls Fitness API to list of available Data Sources used by the User
+  /**
+   * Calls Fitness API to list of available Data Sources used by the User
+   * @param {*} client (oauth2client)
+   */
   static async fetchDataSource(client) {
     try {
       let allSources = await fitness.users.dataSources.list({
@@ -121,11 +150,16 @@ class GoogleFitnessService {
       });
       return ghelper.filterDatatypes(allSources.data.dataSource);
     } catch (err) {
-      console.log(err);
+      throw new FitnessError("Error fetching User Data Sources");
     }
   }
 
-  //Fetch and collect Fitness Data based on Data Sources available for the User
+  /**
+   * Fetch and collect Fitness Data based on Data Sources available for the User
+   * @param {*} user (googleUser object)
+   * @param {*} fromDate (YYYY-MM-DD)
+   * @param {*} toDate (YYYY-MM-DD)
+   */
   static async fetchFitnessData(user, fromDate, toDate) {
     let oauth2Client = ghelper.getAuthClient(user);
     let allSources = await this.fetchDataSource(oauth2Client);
@@ -148,22 +182,24 @@ class GoogleFitnessService {
           requestParams,
           async (err, response) => {
             if (err) {
-              console.error("Error aggregating data:", err.response.data);
-              console.log(err.response.data.error.errors);
+              throw new FitnessError(err.response.data.error);
             } else {
               await this.saveFitnessData(user, response.data.bucket, dt);
             }
           }
         );
       } catch (err) {
-        console.log("==============");
-        console.log(err.response.data);
-        console.log("==============");
+        throw new FitnessError(err.response.data);
       }
     });
   }
 
-  //Collect/Update Fitness Data for each date for user
+  /**
+   * Collect/Update Fitness Data for each date for user
+   * @param {*} user (googleUser object)
+   * @param {*} buckets (aggregate data bucket)
+   * @param {*} datatype
+   */
   static async saveFitnessData(user, buckets, datatype) {
     buckets.forEach(async (bucket) => {
       let dataPoints = bucket.dataset[0].point;
