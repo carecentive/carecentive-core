@@ -55,7 +55,7 @@ class GoogleFitnessService {
     try {
       const rev = await oauth2Client.revokeToken(user.refresh_token);
     } catch (e) {
-      console.log("Token already expired.");
+      throw new FitnessError("Token already expired.");
     }
     let deleted = await GoogleUser.query().delete().where({ user_id });
     if (deleted) {

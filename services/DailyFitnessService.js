@@ -7,7 +7,7 @@ const GoogleFitnessService = require("./FitnessService");
 cron.schedule(
   "59 23 * * *",
   async () => {
-    console.log("Daily task run");
+    console.log("Daily Fitness task run");
     const allusers = await GoogleFitnessService.getAllGoogleUser();
     if (allusers.length) {
       allusers.forEach(async (user) => {
