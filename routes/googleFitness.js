@@ -1,6 +1,5 @@
 const express = require("express");
 
-const User = require("@carecentive/carecentive-core/models/User");
 const GoogleFitnessService = require("../services/FitnessService");
 const router = express.Router();
 const { google } = require("googleapis");
@@ -25,12 +24,12 @@ router.get(
         message: "Google Fit Access already provided.",
       });
     } else {
-      const referer = req.get("referer");
+      const referer = req.get("referer"); //To retain the origin of API call after redirection from Google Auth Server
       const authorizationUrl = ghelper.oauth2Client.generateAuthUrl({
         access_type: "offline",
         scope: ghelper.scopes,
         include_granted_scopes: true,
-        state: JSON.stringify({ userId: userId, referer: referer }),
+        state: JSON.stringify({ userId: userId, referer: referer }), //To retain carecentive user detail during Google URL redirection
       });
       res.send({ url: authorizationUrl });
     }
@@ -135,7 +134,7 @@ router.get(
 
 /*
  * GET /data-types
- * Returns list of data types which have user's fitness data in our database
+ * Returns list of fitness data types stored in our database
  * To be used for filtering purposes on the frontend
  */
 router.get(

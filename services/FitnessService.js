@@ -86,6 +86,7 @@ class GoogleFitnessService {
   }
 
   //Returns date range necessary to fetch Fitness data from Google
+  //If user already has past data, the date from last data will be used as start date
   static async fetchLastData(userId) {
     let fromDate = moment().format("YYYY-MM-DD");
     let toDate = moment().add(1, "days").format("YYYY-MM-DD");

@@ -9,6 +9,7 @@ const auth = {
   redirectUri: process.env.GREDIRECT_URI,
 };
 
+//Google Client Object
 const oauth2Client = new google.auth.OAuth2(
   auth.clientId,
   auth.clientSecret,
@@ -39,6 +40,7 @@ const scopes = [
   --The list includes datatypes that require manual input from users in Google Fit app 
     and aggregated datatypes created by Google who are not available through the endpoint used 
     in this implementation
+  -- Update the list as seen fit
 */
 const ignorables = [
   "active_minutes",
@@ -91,6 +93,7 @@ function dataFormat(format) {
  */
 function filterDatatypes(allSources) {
   if (allSources.length) {
+    //Data sources filterd for repetition and avoidable data types (Data manually saved by User in Google Fit or cumulative data that cannot be aggregated over day intervals)
     const uniqueObjects = Array.from(
       allSources.reduce((uniqueSet, currentObject) => {
         const { name, field } = currentObject.dataType;
@@ -122,7 +125,6 @@ module.exports = {
   auth,
   scopestring,
   scopes,
-  dataTypes,
   oauth2Client,
   getAuthClient,
   filterDatatypes,
