@@ -1,7 +1,6 @@
 const FitbitToken = require("../../../models/FitbitToken");
 const FitbitData = require("../../../models/FitbitData");
 const DateTimeUtils = require("../DateTimeUtils");
-const Logger = require("../../../source/Loggers");
 
 class DBManager {
     static async insertUser(userId, fitbitUserId, memberSince,
@@ -63,7 +62,7 @@ class DBManager {
         let toTimestamp = DateTimeUtils.getTimestampFromDateAndTime(range.date, range.endTime);
         let requestTimestamp = new Date();
 
-        await this.insertTimeSeriesData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, JSON.stringify(response));
+        await this.insertData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, JSON.stringify(response));
     }
 
     static async storeIntradayByIntervalData(userId, requestType, range, response) {
@@ -75,7 +74,7 @@ class DBManager {
         let toTimestamp = DateTimeUtils.getTimestampFromDateAndTime(range.endDate, range.endTime);
         let requestTimestamp = new Date();
 
-        await this.insertTimeSeriesData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, JSON.stringify(response));
+        await this.insertData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, JSON.stringify(response));
     }
 
     static async storeSummaryData(userId, requestType, response) {
@@ -83,14 +82,19 @@ class DBManager {
         let fromTimestamp = requestTimestamp;
         let toTimestamp = requestTimestamp;
 
-        await this.insertTimeSeriesData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, JSON.stringify(response));
+        await this.insertData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, JSON.stringify(response));
     }
 
     static async storeSummaryDataByDate(userId, requestType, range, response) {
         await this.storeIntradayData(userId, requestType, range, response);
     }
 
-    static async insertTimeSeriesData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, response) {
+    static async storePaginatedData(userId, requestType, fromTimestamp, toTimestamp, response) {
+        let requestTimestamp = new Date();
+        await this.insertData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, JSON.stringify(response));
+    }
+
+    static async insertData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, response) {
         await FitbitData.query().insert({
             user_id: userId,
             request_type: requestType,

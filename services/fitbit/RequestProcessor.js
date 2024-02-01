@@ -5,6 +5,7 @@ const RateLimit = require("./api/RateLimit");
 const DateTimeUtils = require("./DateTimeUtils");
 const { UserTokenNotFoundError } = require("../../source/Errors");
 const Logger = require("../../source/Loggers");
+const Config = require("./Config")
 
 class RequestProcessor {
 	static async processRegistration(authorizationCode, userId) {
@@ -154,6 +155,35 @@ class RequestProcessor {
 
 			RateLimit.requestProcessed();
 		}
+		Logger.debug("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
+	}
+
+	static async processPagination(userId, accessToken, fitbitUserId, requestType, limit) {
+		Logger.debug("Processing " + requestType);
+		let startTimestamp = await FitbitHelper.getLastPolledTimestamp(userId, requestType);
+		let startDate = DateTimeUtils.getFormatedDateFromTimestamp(startTimestamp, "YYYY-MM-DDTHH:mm:ss");
+		let response;
+
+		Logger.debug("RateLimit: " + RateLimit.totalQuota);
+		do {
+			if (RateLimit.isLimitExceeded()) {
+				Logger.debug("Request limit is exceeded!");
+				RateLimit.setProcessedStatus(userId, false);
+				break;
+			}
+			
+			response = await ApiManager.getPaginatedData(accessToken, fitbitUserId, requestType, startDate, limit);
+			if(requestType == Config.resource.electrocardiogram){
+				if(response.ecgReadings.length > 0) {
+					let endDate = response.ecgReadings[response.ecgReadings.length-1].startTime;
+					await DBManager.storePaginatedData(userId, requestType, startDate, endDate, response.ecgReadings);
+					startDate = endDate;
+				}
+			}
+
+			RateLimit.requestProcessed();
+		} while(response.pagination.next);
+
 		Logger.debug("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
 	}
 }

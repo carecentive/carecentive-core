@@ -5,6 +5,7 @@ const Device = require("./resources/Devices");
 const Intraday = require("./resources/Intraday");
 const TimeSeries = require("./resources/TimeSeries");
 const Summary = require("./resources/Summary");
+const pagination = require("./resources/Pagination");
 
 class ApiManager {
 	static async authorizeUser(authorizationCode) {
@@ -49,6 +50,11 @@ class ApiManager {
 	static async getSummaryByDate(accessToken, fitbitUserId, resource, date) {
 		let response = await Summary.getSummaryByDate(accessToken, fitbitUserId, resource, date);
 		return response.data; 
+	}
+
+	static async getPaginatedData(accessToken, fitbitUserId, resource, afterDate, limit) {
+		let response = await pagination.getData(accessToken, fitbitUserId, resource, afterDate, limit);
+		return response.data;
 	}
 }
 

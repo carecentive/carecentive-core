@@ -90,6 +90,12 @@ class FitbitManager {
 			return;
 		}
 
+		try {
+			await RequestProcessor.processPagination(userId, tokenData.access_token, tokenData.fitbit_user_id, Config.resource.electrocardiogram, 10);
+		} catch(error){
+			Logger.error("Error while processing ecg data for user " + userId + ":", error, JSON.stringify(error));
+		}
+
 		Logger.debug(JSON.stringify(RateLimit.processedUsers))
 		Logger.debug("Resetting the number of request processed to 0!");
 		RateLimit.resetRequestProcessed();
