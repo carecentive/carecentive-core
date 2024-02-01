@@ -45,7 +45,10 @@ module.exports = {
 		sleepGoals: "sleep/goal",
 		coreTemperatureByDate: "temp/core/date",
 		skinTemperatureByDate: "temp/skin/date",
-		electrocardiogram: "ecg/list"
+		electrocardiogram: "ecg/list",
+		profile: "profile",
+		devices: "devices",
+		friends: "friends"
 	},
 	detailLevel: {
 		oneSecond: "1sec",

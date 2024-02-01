@@ -103,6 +103,15 @@ class FitbitManager {
 
 	static async processSummaryData(userId, accessToken, fitbitUserId) {
 		try {
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.profile);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.devices);
+			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.friends);
+		} catch (error) {
+			Logger.error("Error while processing profile, devices and friends for user " + userId);
+			throw error;
+		}
+
+		try {
 			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.activityStatistics);
 			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.activityGoals);
 			// The endpoint for Activity Log List is correct but the request failed with status code 400.
@@ -194,9 +203,7 @@ class FitbitManager {
 		}
 
 		try {
-			// The endpoint for Cardio Fitness Score(VO2 Max) is correct but the request failed with status code 403.
-			// Here is the url for the endpoint: https://dev.fitbit.com/build/reference/web-api/cardio-fitness-score/get-vo2max-summary-by-interval/
-			// await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.resource.cardioFitnessScore, 30);
+			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.resource.cardioFitnessScore, 30);
 		} catch (error) {
 			Logger.error("Error while processing cardio fitness score for user " + userId);
 			throw error;

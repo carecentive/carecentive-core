@@ -19,6 +19,13 @@ class Summary {
 			
 		return await ApiRequest.sendRequest(accessToken, endpoint);
     }
+
+	static async getFriends(accessToken, fitbitUserId, resource) {
+		let endpoint = Config.apiUrl
+			+ "/1.1/user/" + fitbitUserId
+			+ "/" + resource + ".json";
+		return await ApiRequest.sendRequest(accessToken, endpoint);
+    }
 }
 
 module.exports = Summary;

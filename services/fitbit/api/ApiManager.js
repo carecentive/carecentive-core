@@ -1,11 +1,10 @@
 const Authorization = require("./resources/Authorization");
 const RefreshToken = require("./resources/RefreshToken");
-const Profile = require("./resources/Profile");
-const Device = require("./resources/Devices");
 const Intraday = require("./resources/Intraday");
 const TimeSeries = require("./resources/TimeSeries");
 const Summary = require("./resources/Summary");
-const pagination = require("./resources/Pagination");
+const Pagination = require("./resources/Pagination");
+const Config = require("../Config");
 
 class ApiManager {
 	static async authorizeUser(authorizationCode) {
@@ -14,16 +13,6 @@ class ApiManager {
 
 	static async refreshToken(currentRefreshToken) {
 		let response = await RefreshToken.refreshToken(currentRefreshToken);
-		return response.data;
-	}
-
-	static async getProfile(accessToken, fitbitUserId) {
-		let response = await Profile.getProfile(accessToken, fitbitUserId);
-		return response.data;
-	}
-
-	static async getDevices(accessToken, fitbitUserId) {
-		let response = await Device.getDevices(accessToken, fitbitUserId);
 		return response.data;
 	}
 
@@ -43,17 +32,22 @@ class ApiManager {
 	}
 
 	static async getSummary(accessToken, fitbitUserId, resource) {
-		let response = await Summary.getSummary(accessToken, fitbitUserId, resource);
-		return response.data; 
+		let response;
+		if (resource == Config.resource.friends) {
+			response = await Summary.getFriends(accessToken, fitbitUserId, resource);
+		} else {
+			response = await Summary.getSummary(accessToken, fitbitUserId, resource);
+		}
+		return response.data;
 	}
 
 	static async getSummaryByDate(accessToken, fitbitUserId, resource, date) {
 		let response = await Summary.getSummaryByDate(accessToken, fitbitUserId, resource, date);
-		return response.data; 
+		return response.data;
 	}
 
 	static async getPaginatedData(accessToken, fitbitUserId, resource, afterDate, limit) {
-		let response = await pagination.getData(accessToken, fitbitUserId, resource, afterDate, limit);
+		let response = await Pagination.getData(accessToken, fitbitUserId, resource, afterDate, limit);
 		return response.data;
 	}
 }
