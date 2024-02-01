@@ -16,38 +16,38 @@ class ApiManager {
 		return response.data;
 	}
 
-	static async getIntradayByDateAndTime(accessToken, fitbitUserId, resource, range, detailLevel) {
-		let response = await Intraday.getIntradayByDateAndTime(accessToken, fitbitUserId, resource, range.date, range.startTime, range.endTime, detailLevel)
+	static async getIntradayByDateAndTime(accessToken, fitbitUserId, requestType, range, detailLevel) {
+		let response = await Intraday.getIntradayByDateAndTime(accessToken, fitbitUserId, requestType, range.date, range.startTime, range.endTime, detailLevel)
 		return response.data;
 	}
 
-	static async getIntradayByInterval(accessToken, fitbitUserId, resource, range) {
-		let response = await Intraday.getIntradayByInterval(accessToken, fitbitUserId, resource, range.startDate, range.endDate)
+	static async getIntradayByInterval(accessToken, fitbitUserId, requestType, range) {
+		let response = await Intraday.getIntradayByInterval(accessToken, fitbitUserId, requestType, range.startDate, range.endDate)
 		return response.data;
 	}
 
-	static async getTimeSeriesByDateRange(accessToken, fitbitUserId, resource, range) {
-		let response = await TimeSeries.getTimeSeriesByDateRange(accessToken, fitbitUserId, resource, range.startDate, range.endDate)
+	static async getTimeSeriesByDateRange(accessToken, fitbitUserId, requestType, range) {
+		let response = await TimeSeries.getTimeSeriesByDateRange(accessToken, fitbitUserId, requestType, range.startDate, range.endDate)
 		return response.data;
 	}
 
-	static async getSummary(accessToken, fitbitUserId, resource) {
+	static async getSummary(accessToken, fitbitUserId, requestType) {
 		let response;
-		if (resource == Config.resource.friends) {
-			response = await Summary.getFriends(accessToken, fitbitUserId, resource);
+		if (requestType == Config.resource.friends.requestType) {
+			response = await Summary.getFriends(accessToken, fitbitUserId, requestType);
 		} else {
-			response = await Summary.getSummary(accessToken, fitbitUserId, resource);
+			response = await Summary.getSummary(accessToken, fitbitUserId, requestType);
 		}
 		return response.data;
 	}
 
-	static async getSummaryByDate(accessToken, fitbitUserId, resource, date) {
-		let response = await Summary.getSummaryByDate(accessToken, fitbitUserId, resource, date);
+	static async getSummaryByDate(accessToken, fitbitUserId, requestType, date) {
+		let response = await Summary.getSummaryByDate(accessToken, fitbitUserId, requestType, date);
 		return response.data;
 	}
 
-	static async getPaginatedData(accessToken, fitbitUserId, resource, afterDate, limit) {
-		let response = await Pagination.getData(accessToken, fitbitUserId, resource, afterDate, limit);
+	static async getPaginatedData(accessToken, fitbitUserId, requestType, afterDate, limit) {
+		let response = await Pagination.getData(accessToken, fitbitUserId, requestType, afterDate, limit);
 		return response.data;
 	}
 }

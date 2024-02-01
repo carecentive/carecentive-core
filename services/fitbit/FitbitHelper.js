@@ -3,6 +3,7 @@ const ApiManager = require("./api/ApiManager");
 const DBManager = require("./db/DBManager");
 const DateTimeUtils = require("./DateTimeUtils");
 const Config = require("./Config");
+const Scope = require("./Scope");
 
 class FitbitHelper {
 	static lastSyncedTimestamp = 0;
@@ -55,9 +56,10 @@ class FitbitHelper {
 		return user.fitbit_member_since;
 	}
 
-	static async getLastSyncedTimestamp(accessToken, fitbitUserId) {
-		if(this.lastSyncedTimestamp <= 0) {
-			let devices = await ApiManager.getSummary(accessToken, fitbitUserId, Config.resource.devices);
+	static async getLastSyncedTimestamp(userId, accessToken, fitbitUserId) {
+		let status = await Scope.isGranted(userId, Config.resource.devices);
+		if(status && this.lastSyncedTimestamp <= 0) {
+			let devices = await ApiManager.getSummary(accessToken, fitbitUserId, Config.resource.devices.requestType);
 			let timestamp = 0;
 			for (const device of devices) {
 				let currentTimestamp = DateTimeUtils.getTimestampFromISOTimestamp(device.lastSyncTime);

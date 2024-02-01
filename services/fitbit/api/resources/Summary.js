@@ -3,27 +3,27 @@ const ApiRequest = require("../ApiRequest");
 const Config = require("../../Config");
 
 class Summary {
-    static async getSummary(accessToken, fitbitUserId, resource) {
+    static async getSummary(accessToken, fitbitUserId, requestType) {
 		let endpoint = Config.apiUrl
 			+ "/1/user/" + fitbitUserId
-			+ "/" + resource + ".json";
+			+ "/" + requestType + ".json";
 
 		return await ApiRequest.sendRequest(accessToken, endpoint);
     }
 
-	static async getSummaryByDate(accessToken, fitbitUserId, resource, date) {
+	static async getSummaryByDate(accessToken, fitbitUserId, requestType, date) {
 		let endpoint = Config.apiUrl
 			+ "/1/user/" + fitbitUserId
-			+ "/" + resource + "/"
+			+ "/" + requestType + "/"
 			+ date + ".json";
 			
 		return await ApiRequest.sendRequest(accessToken, endpoint);
     }
 
-	static async getFriends(accessToken, fitbitUserId, resource) {
+	static async getFriends(accessToken, fitbitUserId, requestType) {
 		let endpoint = Config.apiUrl
 			+ "/1.1/user/" + fitbitUserId
-			+ "/" + resource + ".json";
+			+ "/" + requestType + ".json";
 		return await ApiRequest.sendRequest(accessToken, endpoint);
     }
 }

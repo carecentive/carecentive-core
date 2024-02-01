@@ -2,10 +2,10 @@ const ApiRequest = require("../ApiRequest");
 const Config = require("../../Config");
 
 class Pagination {
-    static async getData(accessToken, fitbitUserId, resource, afterDate, limit) {
+    static async getData(accessToken, fitbitUserId, requestType, afterDate, limit) {
 		let endpoint = Config.apiUrl
 			+ "/1/user/" + fitbitUserId
-			+ "/" + resource + ".json"
+			+ "/" + requestType + ".json"
             + "?afterDate=" + afterDate 
             + "&sort=asc&limit=" + limit + "&offset=0";
 
