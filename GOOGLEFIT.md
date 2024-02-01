@@ -32,16 +32,26 @@ GET /auth-callback
 
 This endpoint acquires google access tokens for specific user and verifies the google user. Either new google user is created with the tokens or if user already exists, tokens are updated. The link to original referer which initiated the authentication process is returned such that user will be redirected to the original referer automatically.
 
+Token Refresh is automatically handled using refresh_token when calling Fitness API. The refresh_token is only sent on the first authorization process and cannot be retrieved again unless user follows token revoking process through our app or directly from Google.
+
 2. Collect Fitness Data from Google
 
 ```sh
    GET /sync
 ```
 
-It checks the last fitness data stored in the database and requests new data from Google Fitness since that point in time. List of data sources for the user is fetched from Google which denotes types of data stored, which is then filtered for repetition and avoidable data types (Data manually saved by User in Google Fit or cumulative data that cannot be aggregated over day intervals).
+It checks the last fitness data stored in the database and requests new data from Google Fitness since that point in time. List of data sources for the user is fetched from Google which denotes types of data stored, which is then filtered for repetition and avoidable data types (Data manually saved by User in Google Fit or cumulative data that cannot be aggregated over day intervals, see function `filterDatatypes` in file `source/google.js`; Update ignorable list as seen fit to access different data types).
 Fitness data aggregated over one day interval is fetched for each data type individually and saved in database. If data for same day already exists, it is updated. Data is stored in raw format as well.
 
 Cron Job is also created for daily auto-synchronisation of fitness data for each User which collects data everyday at midnight. See file `services/DailyFitnessService.js`. We only need to import the file in the entry point of express app.
+
+Fitness API Used:
+
+- Datasource - includes all sources of fitness sensory data with datatype for individual user; It includes information on devices or apps that user permitted to manipulate fitness data.
+  (https://developers.google.com/fit/rest/v1/data-sources)
+- Aggregate Data - It allows you to retrieve aggregated data, such as daily steps or calories burned over a specific time period, in our case (1 day interval) for a range of days. It returns list of buckets for each data type and time period.
+  (https://developers.google.com/fit/rest/v1/reference/users/dataset/aggregate,
+  https://developers.google.com/fit/datatypes/aggregate)
 
 3. Revoke Google Fit Access for User
 
