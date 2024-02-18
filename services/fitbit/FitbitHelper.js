@@ -19,7 +19,7 @@ class FitbitHelper {
 	 */
 	static async getMemberSince(accessToken, fitbitUserId) {
 		try {
-			let response = await ApiManager.getSummary(accessToken, fitbitUserId, Config.resource.profile);
+			let response = await ApiManager.getSummary(accessToken, fitbitUserId, Config.resource.profile.requestType);
 			let memberSince = response.user.memberSince;
 			if (memberSince) {
 				return memberSince;
