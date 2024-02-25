@@ -1,18 +1,22 @@
 const Authorization = require("./resources/Authorization");
-const RefreshToken = require("./resources/RefreshToken");
 const Intraday = require("./resources/Intraday");
 const TimeSeries = require("./resources/TimeSeries");
 const Summary = require("./resources/Summary");
 const Pagination = require("./resources/Pagination");
 const Config = require("../Config");
 
+/**
+ * Represents a core class for API calls.
+ * It utilize the resources to further process the request and 
+ * send back the responses to the previous layer.
+ */
 class ApiManager {
 	static async authorizeUser(authorizationCode) {
 		return Authorization.authorizeUser(authorizationCode);
 	}
 
 	static async refreshToken(currentRefreshToken) {
-		let response = await RefreshToken.refreshToken(currentRefreshToken);
+		let response = await Authorization.refreshToken(currentRefreshToken);
 		return response.data;
 	}
 
@@ -31,6 +35,16 @@ class ApiManager {
 		return response.data;
 	}
 
+	/**
+	 * Retrieves summary data from the Fitbit API.
+	 * If the request type is for fetching friends' data, it calls the Summary.getFriends method,
+	 * otherwise, it calls the Summary.getSummary method.
+	 * 
+	 * @param {*} accessToken - The access token used for authentication.
+	 * @param {*} fitbitUserId - The Fitbit user ID for which to retrieve the summary data.
+	 * @param {*} requestType - The type of request for retrieving the summary data.
+	 * @returns {Promise<Object>} A Promise resolving to the summary data obtained from the Fitbit API.
+	 */
 	static async getSummary(accessToken, fitbitUserId, requestType) {
 		let response;
 		if (requestType == Config.resource.friends.requestType) {

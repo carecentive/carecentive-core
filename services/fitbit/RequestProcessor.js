@@ -8,7 +8,17 @@ const Logger = require("../../source/Loggers");
 const Config = require("./Config");
 const Scope = require("./Scope");
 
+/**
+ * The responsibility of this class is to process the requests in a more moduler way
+ */
 class RequestProcessor {
+	/**
+	 * Process user registration by sending request to Fitbit web api and
+	 * storing response such as access token, refresh token, scope, expiration time, etc to the database. 
+	 * @param {*} authorizationCode A code retrived from the fitbit api to authorize user.
+	 * @param {*} userId The user id of carecentive app.
+	 * 
+	 */
 	static async processRegistration(authorizationCode, userId) {
 		const { access_token: accessToken,
 			expires_in: expiresIn,
@@ -32,6 +42,10 @@ class RequestProcessor {
 		}
 	}
 
+	/**
+	 * Update user's token in database using the old refresh token.  
+	 * @param {*} userId The user id of carecentive app.
+	 */
 	static async processRefreshToken(userId) {
 		let user = await DBManager.getUser(userId);
 
@@ -55,6 +69,13 @@ class RequestProcessor {
 		}
 	}
 
+	/**
+	 * Send a single request to Fitbit web api and store the response to the database.
+	 * @param {*} userId The user id of carecentive app.
+	 * @param {*} accessToken The token to access the fitbit web api.
+	 * @param {*} fitbitUserId The fitbit user id of the user.
+	 * @param {*} resource The resource object to generate endpoint.
+	 */
 	static async processSingleRequest(userId, accessToken, fitbitUserId, resource) {
 		let status = await Scope.isGranted(userId, resource);
 		if(!status) return;
@@ -74,6 +95,13 @@ class RequestProcessor {
 		Logger.debug("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
 	}
 
+	/**
+	 * Process multiple requests by date and store the responses to the database.
+	 * @param {*} userId The user id of carecentive app.
+	 * @param {*} accessToken The token to access the fitbit web api.
+	 * @param {*} fitbitUserId The fitbit user id of the user.
+	 * @param {*} resource The resource object to generate endpoint.
+	 */
 	static async processRequestByDate(userId, accessToken, fitbitUserId, resource) {
 		let status = await Scope.isGranted(userId, resource);
 		if(!status) return;
@@ -99,6 +127,14 @@ class RequestProcessor {
 		Logger.debug("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
 	}
 
+	/**
+	 * Process intraday data and store the responses to the database.
+	 * @param {*} userId The user id of carecentive app.
+	 * @param {*} accessToken The token to access the fitbit web api.
+	 * @param {*} fitbitUserId The fitbit user id of the user.
+	 * @param {*} resource The resource object to generate endpoint.
+	 * @param {*} detailLevel The detail information such as 1sec, 1min, etc to generate endpoint.
+	 */
 	static async processIntraday(userId, accessToken, fitbitUserId, resource, detailLevel) {
 		let status = await Scope.isGranted(userId, resource);
 		if(!status) return;
@@ -124,6 +160,14 @@ class RequestProcessor {
 		Logger.debug("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
 	}
 
+	/**
+	 * Process intraday data within a date range and store the responses to the database.
+	 * @param {*} userId The user id of carecentive app.
+	 * @param {*} accessToken The token to access the fitbit web api.
+	 * @param {*} fitbitUserId The fitbit user id of the user.
+	 * @param {*} resource The resource object to generate endpoint.
+	 * @param {*} maximumRange The period in between start and end date such as 30 days, 365 days, etc to generate endpoint.
+	 */
 	static async processIntradayByInterval(userId, accessToken, fitbitUserId, resource, maximumRange) {
 		let status = await Scope.isGranted(userId, resource);
 		if(!status) return;
@@ -149,6 +193,14 @@ class RequestProcessor {
 		Logger.debug("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
 	}
 
+	/**
+	 * Process time series data (not intraday) within a date range and store the responses to the database.  
+	 * @param {*} userId The user id of carecentive app.
+	 * @param {*} accessToken The token to access the fitbit web api.
+	 * @param {*} fitbitUserId The fitbit user id of the user.
+	 * @param {*} resource The resource object to generate endpoint.
+	 * @param {*} maximumRange The period in between start and end date such as 30 days, 365 days, etc to generate endpoint.
+	 */
 	static async processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, resource, maximumRange) {
 		let status = await Scope.isGranted(userId, resource);
 		if(!status) return;
@@ -174,6 +226,14 @@ class RequestProcessor {
 		Logger.debug("Total " + RateLimit.numberOfRequestProcessed + " Request processed successfully!");
 	}
 
+	/**
+	 * Process paginated data such as electrocardiogram and store the responses to the database.  
+	 * @param {*} userId The user id of carecentive app.
+	 * @param {*} accessToken The token to access the fitbit web api.
+	 * @param {*} fitbitUserId The fitbit user id of the user.
+	 * @param {*} resource The resource object to generate endpoint.
+	 * @param {*} limit The number of pages to be considered in single request.
+	 */
 	static async processPagination(userId, accessToken, fitbitUserId, resource, limit) {
 		let status = await Scope.isGranted(userId, resource);
 		if(!status) return;

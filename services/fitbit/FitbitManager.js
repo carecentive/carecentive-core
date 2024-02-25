@@ -5,7 +5,17 @@ const Scheduler = require("./Scheduler");
 const RateLimit = require("./api/RateLimit");
 const RequestProcessor = require("./RequestProcessor");
 
+/**
+ * Represents a core class for fetching user data from the web API and storing it into a database.
+ * This class provides methods to register user and retrieve summary, time series, and intraday information 
+ * from the Fitbit web API endpoints and persist it into a database.
+ */
 class FitbitManager {
+	/**
+	 * Register fitbit user to the carecentive app  
+	 * @param {*} authorizationCode A code retrived from the fitbit api to authorize user.
+	 * @param {*} userId The user id of carecentive app.
+	 */
 	static async registerUser(authorizationCode, userId) {
 		try {
 			await RequestProcessor.processRegistration(authorizationCode, userId);
@@ -15,10 +25,18 @@ class FitbitManager {
 		}
 	}
 
+	/**
+	 * Get the updated refresh token
+	 * @param {*} userId The user id of carecentive app.
+	 */
 	static async getUpdatedRefreshToken(userId) {
 		return RequestProcessor.processRefreshToken(userId);
 	}
 
+	/**
+	 * The entry point to pull all user's data from the fitbit account and store it into the database. 
+	 * A scheduler is used to schedule the tasks based on the rate limit specified in the fitbit web api documentation. 
+	 */
 	static async pollAllUsersDataWithScheduler() {
 		await this.pollAllUsersData();
 
@@ -38,6 +56,12 @@ class FitbitManager {
 		}
 	}
 
+	/**
+	 * The entry point to pull all user's data from the fitbit account and store it into the database.
+	 * It will not process all data if scheduler is not used. 
+	 * Therefore, previous method with scheduler is recommended to use for processing all data.
+	 * @see pollAllUsersDataWithScheduler
+	 */
 	static async pollAllUsersData() {
 		let users = await DBManager.getAllUsers();
 
@@ -58,7 +82,11 @@ class FitbitManager {
 			}
 		}
 	}
-
+	
+	/**
+	 * Poll a specific user data from the fitbit web api and store it in the database  
+	 * @param {*} userId The user id of carecentive app.
+	 */
 	static async pollUserData(userId) {
 		let tokenData;
 		try {
@@ -101,6 +129,12 @@ class FitbitManager {
 		RateLimit.resetRequestProcessed();
 	}
 
+	/**
+	* Fetches summary data from the fitbit web API and persists it into the database.
+	* @param {*} userId The user id of carecentive app.
+	* @param {*} accessToken The token to access the fitbit web api.
+	* @param {*} fitbitUserId The fitbit user id of the user.
+	*/
 	static async processSummaryData(userId, accessToken, fitbitUserId) {
 		try {
 			await RequestProcessor.processSingleRequest(userId, accessToken, fitbitUserId, Config.resource.profile);
@@ -184,6 +218,12 @@ class FitbitManager {
 		}
 	}
 
+	/**
+	* Fetches time series data from the fitbit web API and persists it into the database.
+	* @param {*} userId The user id of carecentive app.
+	* @param {*} accessToken The token to access the fitbit web api.
+	* @param {*} fitbitUserId The fitbit user id of the user.
+	*/
 	static async processTimeSeriesData(userId, accessToken, fitbitUserId) {
 		try {
 			await RequestProcessor.processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, Config.resource.foodLogsCalories, 1095);
@@ -217,6 +257,12 @@ class FitbitManager {
 		}
 	}
 
+	/**
+	* Fetches intraday data from the fitbit web API and persists it into the database.
+	* @param {*} userId The user id of carecentive app.
+	* @param {*} accessToken The token to access the fitbit web api.
+	* @param {*} fitbitUserId The fitbit user id of the user.
+	*/
 	static async processIntradayData(userId, accessToken, fitbitUserId) {
 		try {
 			await RequestProcessor.processIntraday(userId, accessToken, fitbitUserId, Config.resource.heart, Config.detailLevel.oneSecond);

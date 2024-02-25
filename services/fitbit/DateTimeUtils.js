@@ -12,8 +12,13 @@ function getFormatedDateFromTimestamp(timestamp, format) {
 	return moment.unix(timestamp).format(format);
 }
 
+/**
+ * Generate a list of dates each with start and end time.
+ * @param {*} startTimestamp The start date time.
+ * @param {*} endTimestamp The end date time.
+ * @returns A list of dates with time ranges
+ */
 function getTimeRanges(startTimestamp, endTimestamp) {
-	// create a list of ranges(date: yyyy-MM-dd, startTime: HH:mm:ss, endTime: HH:mm:ss)
 	let ranges = [];
 	let startDateTime = moment(moment.unix(startTimestamp), "YYYY-MM-DD HH:mm:ss");
 	let endDateTime = moment(moment.unix(endTimestamp), "YYYY-MM-DD HH:mm:ss");
@@ -35,6 +40,13 @@ function getTimeRanges(startTimestamp, endTimestamp) {
 	return ranges;
 }
 
+/**
+ * Generate a list of date and time ranges each with start and end date time.
+ * @param {*} startTimestamp The start date time.
+ * @param {*} endTimestamp The end date time.
+ * @param {*} maximumRange The maximum range such as number of days in between.
+ * @returns A list of date and time ranges
+ */
 function getDateAndTimeRanges(startTimestamp, endTimestamp, maximumRange) {
 	let ranges = [];
 	let startDateTime = moment(moment.unix(startTimestamp), "YYYY-MM-DD HH:mm:ss");
@@ -109,7 +121,6 @@ function getExpirationDateTime(expiresIn) {
 	return moment().add(expiresIn, 'Seconds').format('YYYY-MM-DD HH:mm:ss');
 }
 
-// date yyyy-MM-dd, time: HH:mm:ss
 function getTimestampFromDateAndTime(date, time) {
 	let dateTimeString = `${date} ${time}`;
 	let dateTime = moment(dateTimeString, "YYYY-MM-DD HH:mm:ss");

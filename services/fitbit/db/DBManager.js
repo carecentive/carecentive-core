@@ -2,7 +2,12 @@ const FitbitToken = require("../../../models/FitbitToken");
 const FitbitData = require("../../../models/FitbitData");
 const DateTimeUtils = require("../DateTimeUtils");
 
+/**
+ * Represents a core class for database operations.
+ * Provides methods for inserting, updating, and retrieving data from the database.
+ */
 class DBManager {
+    // Inserts a new user record into the database.
     static async insertUser(userId, fitbitUserId, memberSince,
         tokenLastUpdated, accessToken, expirationDate, refreshToken, scope) {
         await FitbitToken.query()
@@ -18,6 +23,7 @@ class DBManager {
             });
     }
 
+    // Updates an existing user record in the database.
     static async updateUser(user, fitbitUserId, tokenLastUpdated,
         accessToken, expirationDate, refreshToken, scope) {
         await user.$query().patch({
@@ -30,6 +36,7 @@ class DBManager {
         });
     }
 
+    // Updates an existing user in the database and and fetch the updated record.
     static async updateAndFetchUser(user, fitbitUserId, tokenLastUpdated,
         accessToken, expirationDate, refreshToken) {
         await user.$query().patchAndFetch({
@@ -48,7 +55,13 @@ class DBManager {
     static async getAllUsers() {
         return await FitbitToken.query().distinct("user_id");
     }
-
+    
+    /**
+     * Retrieves the last entry polled from the Fitbit API for a specific user and request type. 
+     * @param {*} userId - The ID of the user for whom to retrieve the last polled entry.
+     * @param {*} requestType - The type of request for which to retrieve the last polled entry.
+     * @returns {Promise<Object>} A Promise resolving to the last polled entry from the database.
+     */
     static async getLastPolledEntry(userId, requestType) {
         return await FitbitData.query().where({
             "user_id": userId,
@@ -94,6 +107,7 @@ class DBManager {
         await this.insertData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, JSON.stringify(response));
     }
 
+    // Inserts a new response or data into the database.
     static async insertData(userId, requestType, requestTimestamp, fromTimestamp, toTimestamp, response) {
         await FitbitData.query().insert({
             user_id: userId,
