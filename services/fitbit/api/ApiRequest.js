@@ -126,11 +126,13 @@ class ApiRequest {
             });
 
             if (response.status == CONSTANTS.HTTP_STATUS.OK) {
-                let totalQuota = response.headers["fitbit-rate-limit-limit"];
+                // let totalQuota = response.headers["fitbit-rate-limit-limit"];
+                // The retrieved Rate limit is not consistent
                 // let refillSeconds = response.headers['fitbit-rate-limit-reset'];
                 // Remaining seconds retrieved from the response does not work as expected.
                 // It throws rate limit error even after adding padding of 600 seconds to the remaining seconds.
                 // Therefore, a fixed number of seconds is used which is 3600.
+                let totalQuota = 150;
                 let refillSeconds = 3600;
                 RateLimit.set(totalQuota, refillSeconds, 10);
                 return response;

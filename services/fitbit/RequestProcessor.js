@@ -77,6 +77,7 @@ class RequestProcessor {
 	 * @param {*} resource The resource object to generate endpoint.
 	 */
 	static async processSingleRequest(userId, accessToken, fitbitUserId, resource) {
+		if (RateLimit.isLimitExceeded()) return;
 		let status = await Scope.isGranted(userId, resource);
 		if(!status) return;
 
@@ -103,6 +104,7 @@ class RequestProcessor {
 	 * @param {*} resource The resource object to generate endpoint.
 	 */
 	static async processRequestByDate(userId, accessToken, fitbitUserId, resource) {
+		if (RateLimit.isLimitExceeded()) return;
 		let status = await Scope.isGranted(userId, resource);
 		if(!status) return;
 
@@ -111,7 +113,6 @@ class RequestProcessor {
 		let endTimestamp = await FitbitHelper.getLastSyncedTimestamp(userId, accessToken, fitbitUserId);
 		const ranges = FitbitHelper.getTimeRanges(startTimestamp, endTimestamp);
 
-		Logger.debug("RateLimit: " + RateLimit.totalQuota)
 		Logger.debug("Number of request remainig in processing " + resource.requestType + " : " + ranges.length);
 		for (const range of ranges) {
 			if (RateLimit.isLimitExceeded()) {
@@ -136,6 +137,7 @@ class RequestProcessor {
 	 * @param {*} detailLevel The detail information such as 1sec, 1min, etc to generate endpoint.
 	 */
 	static async processIntraday(userId, accessToken, fitbitUserId, resource, detailLevel) {
+		if (RateLimit.isLimitExceeded()) return;
 		let status = await Scope.isGranted(userId, resource);
 		if(!status) return;
 
@@ -169,6 +171,7 @@ class RequestProcessor {
 	 * @param {*} maximumRange The period in between start and end date such as 30 days, 365 days, etc to generate endpoint.
 	 */
 	static async processIntradayByInterval(userId, accessToken, fitbitUserId, resource, maximumRange) {
+		if (RateLimit.isLimitExceeded()) return;
 		let status = await Scope.isGranted(userId, resource);
 		if(!status) return;
 
@@ -202,6 +205,7 @@ class RequestProcessor {
 	 * @param {*} maximumRange The period in between start and end date such as 30 days, 365 days, etc to generate endpoint.
 	 */
 	static async processTimeSeriesByDateRange(userId, accessToken, fitbitUserId, resource, maximumRange) {
+		if (RateLimit.isLimitExceeded()) return;
 		let status = await Scope.isGranted(userId, resource);
 		if(!status) return;
 
@@ -235,6 +239,7 @@ class RequestProcessor {
 	 * @param {*} limit The number of pages to be considered in single request.
 	 */
 	static async processPagination(userId, accessToken, fitbitUserId, resource, limit) {
+		if (RateLimit.isLimitExceeded()) return;
 		let status = await Scope.isGranted(userId, resource);
 		if(!status) return;
 
