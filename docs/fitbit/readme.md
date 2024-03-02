@@ -45,6 +45,10 @@ A total of three core classes are utilized:
 
 This section outlines the flow of handling requests and responses within the Fitbit API integration. It describes how requests are initiated, processed, and responded to, as well as how the resulting data is stored.
 
+<div align="center">
+  <img src="./images/flow.svg" alt="Request Response Flow">
+  <figcaption>Figure: Request Response Flow [Generated using <a href="https://app.diagrams.net/">draw.io</a>]</figcaption>
+</div>
 
 ### Flow of Sending a Request
 
@@ -91,7 +95,7 @@ Logging generates output in the console and is also stored in the central log fi
 
 A debugging feature is implemented to offer more detailed information during execution. It can be enabled or disabled in the config file. The `Logger.debug("")` function prints debug information if enabled.
 
-![Alt text](./images/log.png)
+![Debug messages](./images/log.png)
 
 ## Scalability
 
