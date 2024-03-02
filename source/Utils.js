@@ -1,32 +1,32 @@
-const moment = require('moment');
+const moment = require("moment");
 
 function getDatetimeString (date) {
-    let datetimeString = date.getUTCFullYear() + '-' +
-        ('00' + (date.getUTCMonth()+1)).slice(-2) + '-' +
-        ('00' + date.getUTCDate()).slice(-2) + ' ' + 
-        ('00' + date.getUTCHours()).slice(-2) + ':' + 
-        ('00' + date.getUTCMinutes()).slice(-2) + ':' + 
-        ('00' + date.getUTCSeconds()).slice(-2);
+	let datetimeString = date.getUTCFullYear() + "-" +
+        ("00" + (date.getUTCMonth()+1)).slice(-2) + "-" +
+        ("00" + date.getUTCDate()).slice(-2) + " " + 
+        ("00" + date.getUTCHours()).slice(-2) + ":" + 
+        ("00" + date.getUTCMinutes()).slice(-2) + ":" + 
+        ("00" + date.getUTCSeconds()).slice(-2);
 
-    return datetimeString;
-};
+	return datetimeString;
+}
 
 function dateToTimestamp (date) {
-    return Math.round(date/1000);
+	return Math.round(date/1000);
 }
 
 function getNowAsTimestamp() {
-    return Math.round(new Date()/1000)
+	return Math.round(new Date()/1000);
 }
 
 function sortObjectByKeys (object) {
-    sorted = Object.keys(object)
-    .sort()
-    .reduce((acc, key) => ({
-        ...acc, [key]: object[key]
-    }), {})
+	sorted = Object.keys(object)
+		.sort()
+		.reduce((acc, key) => ({
+			...acc, [key]: object[key]
+		}), {});
 
-    return sorted;
+	return sorted;
 }
 
 /**
@@ -35,9 +35,9 @@ function sortObjectByKeys (object) {
  * @returns number The current pregnancy week
  */
 function getPregnancyWeekByConceptionDate(conceptionDate) {
-    let today = moment();
-    let pregnancyWeek = today.diff(conceptionDate, 'weeks');
-    return pregnancyWeek
+	let today = moment();
+	let pregnancyWeek = today.diff(conceptionDate, "weeks");
+	return pregnancyWeek;
 }
 
 /**
@@ -46,11 +46,11 @@ function getPregnancyWeekByConceptionDate(conceptionDate) {
  * @returns {Object} Key-value Object, keys are questionnaire IDs, values are the last datetime this questionnaire was submitted 
  */
 function getLatestSubmissionByQuestionnaire (allQuestionnaires) {
-    let latest = {};
-    for (let questionnaire of allQuestionnaires) {
-        latest[questionnaire.questionnaire] = questionnaire.datetime;
-    }
-    return latest;
+	let latest = {};
+	for (let questionnaire of allQuestionnaires) {
+		latest[questionnaire.questionnaire] = questionnaire.datetime;
+	}
+	return latest;
 }
 
 /**
@@ -58,12 +58,12 @@ function getLatestSubmissionByQuestionnaire (allQuestionnaires) {
  * @param {*} allPhotos A list of all photo submissions, in time-ascending order for one single user
  * @returns {Object} Key-value Object, keys are photo IDs, values are the last datetime this photo type was submitted 
  */
- function getLatestSubmissionByPhoto (allPhotos) {
-    let latest = {};
-    for (let photo of allPhotos) {
-        latest[photo.type] = photo.datetime;
-    }
-    return latest;
+function getLatestSubmissionByPhoto (allPhotos) {
+	let latest = {};
+	for (let photo of allPhotos) {
+		latest[photo.type] = photo.datetime;
+	}
+	return latest;
 }
 
 
@@ -78,22 +78,22 @@ function getLatestSubmissionByQuestionnaire (allQuestionnaires) {
  * @returns {Boolean} True or False, depending on whether the questionnaire should be active
  */
 function isActivityActive (lastQuestionnaireSubmissionDate, referenceDate, eligibleWeeks ) {
-    // Has the questionnaire ever been done before?
+	// Has the questionnaire ever been done before?
 
-    if ( !lastQuestionnaireSubmissionDate ) {
-        return true;
-    }
-    else {
-        // Compare last questionnaire date and conception date
-        let conceptionLastSubmissionWeekDifference = moment(lastQuestionnaireSubmissionDate).diff(referenceDate, 'weeks');
+	if ( !lastQuestionnaireSubmissionDate ) {
+		return true;
+	}
+	else {
+		// Compare last questionnaire date and conception date
+		let conceptionLastSubmissionWeekDifference = moment(lastQuestionnaireSubmissionDate).diff(referenceDate, "weeks");
 
-        if ( eligibleWeeks.includes(conceptionLastSubmissionWeekDifference) ) {
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
+		if ( eligibleWeeks.includes(conceptionLastSubmissionWeekDifference) ) {
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
 }
 
 
@@ -105,26 +105,85 @@ function isActivityActive (lastQuestionnaireSubmissionDate, referenceDate, eligi
  * @param {*} object 
  */
 function datetimeKeysToDateKeys(timestampSortedObject) {
-    let dateSortedObject = {};
+	let dateSortedObject = {};
 
-    for(let key in timestampSortedObject) {
-        let dateString = moment(key).format("YYYY-MM-DD")
+	for(let key in timestampSortedObject) {
+		let dateString = moment(key).format("YYYY-MM-DD");
         
-        if (!dateSortedObject[dateString]) {
-        dateSortedObject[dateString] = {};
-        }
+		if (!dateSortedObject[dateString]) {
+			dateSortedObject[dateString] = {};
+		}
 
-        dateSortedObject[dateString][key] = timestampSortedObject[key];
-    }
+		dateSortedObject[dateString][key] = timestampSortedObject[key];
+	}
 
-    return dateSortedObject;
+	return dateSortedObject;
 }
 
 function getRandomIntegerBetween(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min) + min); // The maximum is exclusive and the minimum is inclusive
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min) + min); // The maximum is exclusive and the minimum is inclusive
 }
 
-module.exports = {getDatetimeString, dateToTimestamp, getNowAsTimestamp, sortObjectByKeys, getPregnancyWeekByConceptionDate, getLatestSubmissionByQuestionnaire, getLatestSubmissionByPhoto, isActivityActive, datetimeKeysToDateKeys, getRandomIntegerBetween}
+function getFormatedDateFromTimestamp(timestamp, format) {
+	return moment.unix(timestamp).format(format);
+}
+
+function getDateRanges(startDate, endDate, intervalDays) {
+	const ranges = [];
+	startDate = moment(startDate, "YYYY-MM-DD");
+	endDate = moment(endDate, "YYYY-MM-DD");
+	let now = moment();
+	let currentEndDate;
+  
+	while (startDate.isBefore(endDate)) {
+		if(now.diff(startDate, "days") < intervalDays) {
+			currentEndDate = now;
+		} else {
+			currentEndDate = moment(startDate).add(intervalDays, "days").subtract(1, "day");
+		}
+
+		ranges.push({
+			start: startDate.format("YYYY-MM-DD"),
+			end: currentEndDate.format("YYYY-MM-DD")
+		});
+
+		startDate = moment(currentEndDate).add(1, "day");
+	}
+
+	return ranges;
+}
+
+function getTimestampFromISOTimestamp(ISOTimestamp) {
+	return new Date(ISOTimestamp).getTime() / 1000;  
+}
+
+function isTimestampToday(timestamp) {
+	const date = moment.unix(timestamp);
+	const currentDate = moment();
+
+	return (
+		date.isSame(currentDate, "day") &&
+      date.isSame(currentDate, "month") &&
+      date.isSame(currentDate, "year")
+	);
+}
+
+module.exports = {
+	getDatetimeString,
+	dateToTimestamp,
+	getNowAsTimestamp,
+	sortObjectByKeys,
+	getPregnancyWeekByConceptionDate,
+	getLatestSubmissionByQuestionnaire,
+	getLatestSubmissionByPhoto,
+	isActivityActive,
+	datetimeKeysToDateKeys,
+	getRandomIntegerBetween,
+	getFormatedDateFromTimestamp,
+	getDateRanges,
+	getTimestampFromISOTimestamp,
+	isTimestampToday
+};
 
