@@ -47,7 +47,7 @@ This section outlines the flow of handling requests and responses within the Fit
 
 <div align="center">
   <img src="./images/flow.svg" alt="Request Response Flow">
-  <figcaption>Figure: Request Response Flow [Generated using <a href="https://app.diagrams.net/">draw.io</a>]</figcaption>
+  <p style="text-align: center;">Figure: Request Response Flow [Generated using <a href="https://app.diagrams.net/">draw.io</a>]</p>
 </div>
 
 ### Flow of Sending a Request
