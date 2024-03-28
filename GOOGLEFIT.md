@@ -37,13 +37,13 @@ Token Refresh is automatically handled using refresh_token when calling Fitness 
 2. Collect Fitness Data from Google
 
 ```sh
-   GET /sync
+   GET /sync?fromDate=YYYY-MM-DD
 ```
 
 It checks the last fitness data stored in the database and requests new data from Google Fitness since that point in time. List of data sources for the user is fetched from Google which denotes types of data stored, which is then filtered for repetition and avoidable data types (Data manually saved by User in Google Fit or cumulative data that cannot be aggregated over day intervals, see function `filterDatatypes` in file `source/google.js`; Update ignorable list as seen fit to access different data types).
 Fitness data aggregated over one day interval is fetched for each data type individually and saved in database. If data for same day already exists, it is updated. Data is stored in raw format as well.
 
-Cron Job is also created for daily auto-synchronisation of fitness data for each User which collects data everyday at midnight. See file `services/DailyFitnessService.js`. We only need to import the file in the entry point of express app.
+Param `fromDate` is optional in case user wants to define the starting date from syncing data. If the param is provided, data will be fetched from that date to current date, given that fromDate is not greater than current date, else it follows the default behavior.
 
 Fitness API Used:
 
@@ -84,3 +84,7 @@ It returns list of fitness data types stored in our database.
 ```
 
 It returns list of fitness data for user in ascending order of dates based on fromDate and toDate query parameter (compulsory). User can also provide optional query param 'dataTypes' which should contain a comma separated string of fitness datatypes to filter the data list.
+
+## Google Access
+
+In case, User has revoked google access from outside the app, User's Google access token will be removed from out database, once `/sync` endpoint is called by the user.
