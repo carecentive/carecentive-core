@@ -107,19 +107,27 @@ router.delete(
 );
 
 /*
- * GET /sync
+ * GET /sync?fromDate=YYYY-MM-DD
  * (Allowed only for users that have given permission for fitness API)
  * Initiates collection of fitness data from last fetched date or one day before to current date
+ * if fromDate param is provided, data will be fetched from that date to current date,
+ * given fromDate is not greater than current date, else follows the default behavior
  */
 router.get(
   "/sync",
   authentication.authenticateToken,
   async function (req, res, next) {
     try {
+      const { fromDate } = req.query;
+      if (fromDate && !testDateFormat(fromDate)) {
+        return res.status(400).json({
+          error: "Please provide from Date (YYYY-MM-DD).",
+        });
+      }
       userId = req.authData.user_id;
       googleUser = await GoogleFitnessService.getUser(userId);
       if (googleUser) {
-        const data = await GoogleFitnessService.syncData(googleUser);
+        const data = await GoogleFitnessService.syncData(googleUser, fromDate);
         res.send(data);
       } else {
         res.status(404).send({

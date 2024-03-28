@@ -55,7 +55,9 @@ class GoogleFitnessService {
     try {
       const rev = await oauth2Client.revokeToken(user.refresh_token);
     } catch (e) {
-      throw new FitnessError("Token already expired.");
+      //If token is already expired, delete user from our database
+      let deleted = await GoogleUser.query().delete().where({ user_id });
+      throw new FitnessError("Token already expired. Deleting User.");
     }
     let deleted = await GoogleUser.query().delete().where({ user_id });
     if (deleted) {
@@ -110,20 +112,25 @@ class GoogleFitnessService {
    * If user already has past data, the date from last data will be used as start date
    * @param {*} userId
    */
-  static async fetchLastData(userId) {
+  static async fetchLastData(userId, syncFromDate) {
     let fromDate = moment().format("YYYY-MM-DD");
-    let toDate = moment().add(1, "days").format("YYYY-MM-DD");
-    const result =
-      (await GoogleData.query()
-        .select(
-          "id",
-          GoogleData.raw('from_unixtime(on_date,"%Y-%m-%d") as on_date')
-        )
-        .where({ user_id: userId })
-        .orderBy("on_date", "desc")
-        .first()) ?? null;
-    if (result) {
-      fromDate = moment(result.on_date).format("YYYY-MM-DD");
+    let to = moment().add(1, "days");
+    let toDate = to.format("YYYY-MM-DD");
+    if (syncFromDate && to.diff(syncFromDate, "day") > 0) {
+      fromDate = syncFromDate;
+    } else {
+      const result =
+        (await GoogleData.query()
+          .select(
+            "id",
+            GoogleData.raw('from_unixtime(on_date,"%Y-%m-%d") as on_date')
+          )
+          .where({ user_id: userId })
+          .orderBy("on_date", "desc")
+          .first()) ?? null;
+      if (result) {
+        fromDate = moment(result.on_date).format("YYYY-MM-DD");
+      }
     }
     return { fromDate, toDate };
   }
@@ -132,8 +139,8 @@ class GoogleFitnessService {
    * Calls Fitness API for User with provided Date Range
    * @param {*} googleUser
    */
-  static async syncData(googleUser) {
-    let { fromDate, toDate } = await this.fetchLastData(userId);
+  static async syncData(googleUser, syncFromDate) {
+    let { fromDate, toDate } = await this.fetchLastData(userId, syncFromDate);
     await this.fetchFitnessData(googleUser, fromDate, toDate);
     return { message: "Data fetched from Google Fitness" };
   }
@@ -142,7 +149,7 @@ class GoogleFitnessService {
    * Calls Fitness API to list of available Data Sources used by the User
    * @param {*} client (oauth2client)
    */
-  static async fetchDataSource(client) {
+  static async fetchDataSource(client, user) {
     try {
       let allSources = await fitness.users.dataSources.list({
         auth: client,
@@ -150,7 +157,12 @@ class GoogleFitnessService {
       });
       return ghelper.filterDatatypes(allSources.data.dataSource);
     } catch (err) {
-      throw new FitnessError("Error fetching User Data Sources");
+      //If token is revoked, remove user's google access record from our database
+      //User has to re-authorize our app to access data
+      if (err?.response?.data?.error === "invalid_grant") {
+        await this.removeUser(user.user_id);
+        throw new FitnessError("Token Expired");
+      }
     }
   }
 
@@ -162,7 +174,7 @@ class GoogleFitnessService {
    */
   static async fetchFitnessData(user, fromDate, toDate) {
     let oauth2Client = ghelper.getAuthClient(user);
-    let allSources = await this.fetchDataSource(oauth2Client);
+    let allSources = await this.fetchDataSource(oauth2Client, user);
     allSources.map(async (dt) => {
       try {
         const requestParams = {
