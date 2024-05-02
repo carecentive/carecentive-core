@@ -17,7 +17,10 @@ class FileService {
     // let stringDate = nowTimestamp.toLocaleString("fr-CA").split(" ")[0].replace(/(-|,/)/g, "")
     // let stringTime = nowTimestamp.toLocaleString("de-DE").split(" ")[1].replace(/:_\//g, "")
     let now_string = moment().format("YYYYMMDD_HHmmss");
-    let fileref = (userId + "_" + now_string + "_" + type + path.extname(file.originalFilename) + ".unsafe");
+
+    // Removed type to prevent directory traversal attack
+    // If you wish to use type in URL, make sure to clean the content
+    let fileref = (userId + "_" + now_string + path.extname(file.originalFilename) + ".unsafe");
 
     // Move file into correct folder
     var oldPath = file.path;

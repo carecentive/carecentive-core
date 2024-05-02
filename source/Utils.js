@@ -31,7 +31,7 @@ function sortObjectByKeys (object) {
 
 /**
  * Calculates the current pregnancy week by a conception date
- * @param {Date (As Date/Datetime object or string)} conceptionDate 
+ * @param {Date (As Date/Datetime object or string)} conceptionDate
  * @returns number The current pregnancy week
  */
 function getPregnancyWeekByConceptionDate(conceptionDate) {
@@ -43,7 +43,7 @@ function getPregnancyWeekByConceptionDate(conceptionDate) {
 /**
  * Get the datetime of the latest submitted questionnaire for all questionnaire IDs in the database
  * @param {*} allQuestionnaires A list of all questionnaires, in time-ascending order for one single user
- * @returns {Object} Key-value Object, keys are questionnaire IDs, values are the last datetime this questionnaire was submitted 
+ * @returns {Object} Key-value Object, keys are questionnaire IDs, values are the last datetime this questionnaire was submitted
  */
 function getLatestSubmissionByQuestionnaire (allQuestionnaires) {
 	let latest = {};
@@ -56,7 +56,7 @@ function getLatestSubmissionByQuestionnaire (allQuestionnaires) {
 /**
  * Get the datetime of the latest submitted photo for all photo types in the database
  * @param {*} allPhotos A list of all photo submissions, in time-ascending order for one single user
- * @returns {Object} Key-value Object, keys are photo IDs, values are the last datetime this photo type was submitted 
+ * @returns {Object} Key-value Object, keys are photo IDs, values are the last datetime this photo type was submitted
  */
 function getLatestSubmissionByPhoto (allPhotos) {
 	let latest = {};
@@ -66,12 +66,11 @@ function getLatestSubmissionByPhoto (allPhotos) {
 	return latest;
 }
 
-
 /**
  * Determines whether a questionnaire is active/should be displayed based on various factors
- * Note: Does not check whether the user currently is in pregnancy week X - this must be checked beforehand! 
+ * Note: Does not check whether the user currently is in pregnancy week X - this must be checked beforehand!
  * Only checks whether a questionnaire was already answered in the respective week
- * 
+ *
  * @param {string (date)} lastQuestionnaireSubmissionDate The last (most recent) submission date of the questionnaire, as String
  * @param {string (date)} referenceDate The reference date used for week calculation, usually conception or birth date
  * @param {array} eligibleWeeks Weeks when this questionnaire should be active
@@ -96,13 +95,12 @@ function isActivityActive (lastQuestionnaireSubmissionDate, referenceDate, eligi
 	}
 }
 
-
 /**
  * Takes an object that uses timestamps as keys and sorts it by date
  * Returns one date key for each date, in which the respective timestamps are now stored
  * Example: {2020-05-27T07:16:43.000Z => {...}, 2020-05-27T07:23:32.000Z => {...}, 2020-05-27T07:28:13.000Z => {...}
  * Returns: {2020-05-27 => {{2020-05-27T07:16:43.000Z => {...}, 2020-05-27T07:23:32.000Z => {...}, 2020-05-27T07:28:13.000Z => {...}}}
- * @param {*} object 
+ * @param {*} object
  */
 function datetimeKeysToDateKeys(timestampSortedObject) {
 	let dateSortedObject = {};
@@ -170,6 +168,16 @@ function isTimestampToday(timestamp) {
 	);
 }
 
+/**
+ * Returns boolean after matching parameter with format YYYY-MM-DD.
+ * @param {string} date
+ * @returns {boolean}
+ */
+function testDateFormat(date) {
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  return dateRegex.test(date);
+}
+
 module.exports = {
 	getDatetimeString,
 	dateToTimestamp,
@@ -184,6 +192,6 @@ module.exports = {
 	getFormatedDateFromTimestamp,
 	getDateRanges,
 	getTimestampFromISOTimestamp,
-	isTimestampToday
+	isTimestampToday,
+	testDateFormat
 };
-
