@@ -26,6 +26,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "form-data": "^4.0.0",
+    "googleapis": "^135.1.0",
     "http-errors": "^2.0.0",
     "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",
