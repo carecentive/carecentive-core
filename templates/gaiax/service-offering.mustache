@@ -1,0 +1,29 @@
+{
+  "@context": [
+    "https://www.w3.org/2018/credentials/v1",
+    "https://w3id.org/security/suites/jws-2020/v1",
+    "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#"
+  ],
+  "type": "VerifiableCredential",
+  "id": "{{{ credential_id }}}",
+  "issuer": "{{{ issuer }}}",
+  "issuanceDate": "{{{ issuance_date }}}",
+  "credentialSubject": {
+    "id": "{{{ subject_id }}}",
+    "type": "gx:ServiceOffering",
+    "gx:providedBy": {
+      "id": "{{{ participant_cs_id }}}"
+    },
+    "gx:policy": "policy contents test",
+    "gx:termsAndConditions": {
+      "gx:URL": "{{{ terms_and_conditions_url }}}",
+      "gx:hash": "{{{ terms_and_conditions_hash }}}"
+    },
+    "gx:dataAccountExport": {
+      "gx:requestType": "API",
+      "gx:accessType": "digital",
+      "gx:formatType": "application/json"
+    },
+    "gx:aggregationOf": "{{{ data_resource_cs_id }}}"
+  }
+}

@@ -119,3 +119,6 @@ dist
 # eslint
 .eslintrc.js
 .eslintignore
+
+# JetBrains IDEs
+.idea/
