@@ -1,8 +1,13 @@
+// services.js
+
 const crypto = require('crypto');
 const axios = require('axios');
-const db = require('./GarminDB');
+const db = require('./GarminDBManager');
 const moment = require('moment');
 const { error } = require('console');
+
+const garminConsumerKey = process.env.GARMIN_CONSUMERKEY;
+const garminConsumerSecret = process.env.GARMIN_CONSUMERSECRET;
 
 /**
  * Generates a HMAC-SHA1 signature for OAuth 1.0.
@@ -70,7 +75,7 @@ const makeApiRequest = async (url, userId, responseType, uploadStartTimeInSecond
 
     // OAuth data preparation
     const oauthData = {
-        oauth_consumer_key: (await db.GarminDBManager.getConsumerCredentials()).consumerKey,
+        oauth_consumer_key: garminConsumerKey,
         oauth_token: (await db.GarminDBManager.getAccessTokenAndSecret(userId)).accessToken,
         oauth_signature_method: 'HMAC-SHA1',
         oauth_timestamp: Math.floor(Date.now() / 1000),
@@ -87,7 +92,7 @@ const makeApiRequest = async (url, userId, responseType, uploadStartTimeInSecond
 
     const baseString = 'GET&' + encodeURIComponent(url) + '&' + encodeURIComponent(normalizedParams);
 
-    const signingKey = `${encodeURIComponent((await db.GarminDBManager.getConsumerCredentials()).consumerSecret)}&${encodeURIComponent((await db.GarminDBManager.getAccessTokenAndSecret(userId)).accessSecret)}`;
+    const signingKey = `${encodeURIComponent(garminConsumerSecret)}&${encodeURIComponent((await db.GarminDBManager.getAccessTokenAndSecret(userId)).accessSecret)}`;
 
     const signature = generateSignature(baseString, signingKey);
 
@@ -160,7 +165,7 @@ const getDailySummaries = async (userId, starttime, endtime) => {
     const url = 'https://apis.garmin.com/wellness-api/rest/dailies';
   
     await makeApiRequest(url, userId, "daily_summary", starttime, endtime);
-};
+  };
   
 const getSleepSummaries = async (userId, starttime, endtime) => {
   const url = 'https://apis.garmin.com/wellness-api/rest/epochs';
@@ -269,14 +274,6 @@ const getAllDataAllUsersTimeless = async () => {
 }
 };
 
-
-/**
- * Executes a request for the specified apiType and userId with a given timeframe
- * @param {number} userId - userId the data is supposed to be pulled for
- * @param {string} apiType - Specifies which api to be pulled from
- * @param {number} startTime - The start time in seconds.
- * @param {number} endTime - The end time in seconds. 
- */
 async function execAPI(userId, apiType, startTime, endTime) {
   console.log(`Fetching ${apiType} for user ${userId} from ${Date(startTime*1000)} to ${Date(endTime*1000)}`);
   switch(apiType){

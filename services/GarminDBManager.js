@@ -1,4 +1,5 @@
-const {GarminUser, GarminApiResponse, GarminDevUser} = require("../models/GarminModels")
+
+const {GarminUser, GarminApiResponse} = require("../models/GarminModels")
 const moment = require('moment');
 
 class GarminDBManager {
@@ -149,17 +150,6 @@ class GarminDBManager {
     return { accessToken: result.garmin_access_token, accessSecret: result.garmin_access_secret };
   }
 
-  /**
-   * Retrieves the global Garmin developer consumer credentials. Assumes only one set of credentials exists.
-   * 
-   * @returns {Promise<Object>} An object containing the consumerKey and consumerSecret.
-   */
-  static async getConsumerCredentials() {
-    const result = await GarminDevUser.query().first().select('consumer_key', 'consumer_secret');
-    if (!result) throw new Error('API consumer credentials not found.');
-    return { consumerKey: result.consumer_key, consumerSecret: result.consumer_secret };
-  }
-
 
   /**
    * Retrieves the latest timestamp for all API requests for a user based on their internal user ID.
@@ -177,4 +167,4 @@ class GarminDBManager {
 
 }
 
-module.exports = { GarminUser, GarminApiResponse, GarminDevUser, GarminDBManager };
+module.exports = { GarminUser, GarminApiResponse, GarminDBManager };

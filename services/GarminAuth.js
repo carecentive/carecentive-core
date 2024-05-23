@@ -1,6 +1,9 @@
 const axios = require('axios');
 const crypto = require('crypto');
-const db = require('./GarminDB');
+const db = require('./GarminDBManager');
+
+const consumerKey = process.env.GARMIN_CONSUMERKEY;
+const consumerSecret = process.env.GARMIN_CONSUMERSECRET;
 
 /**
  * Generates a random nonce value.
@@ -84,18 +87,18 @@ let globalTokenSecret = ''; // Consider a more secure way to handle this
  * @param {number} userId - The ID of the user initiating the request.
  * @returns {Promise<Object>} A promise that resolves with the OAuth token and secret.
  */
-async function getOAuthRequestToken(userID) {
-    const { consumerKey, consumerSecret } = await db.GarminDBManager.getConsumerCredentials(userID);
+async function getOAuthRequestToken() {
     const parameters = getOAuthParameters(consumerKey);
     const baseString = createBaseString('POST', 'https://connectapi.garmin.com/oauth-service/oauth/request_token', parameters);
     const signature = signRequest(baseString, consumerSecret);
-
+  
     const response = await axios.post('https://connectapi.garmin.com/oauth-service/oauth/request_token', null, {
         headers: { Authorization: buildAuthorizationHeader(parameters, signature) },
     });
 
     const { oauth_token, oauth_token_secret } = Object.fromEntries(new URLSearchParams(response.data));
     globalTokenSecret = oauth_token_secret; // Store the token secret to use in the next step
+
     return { token: oauth_token, tokenSecret: oauth_token_secret };
 }
 
@@ -107,7 +110,6 @@ async function getOAuthRequestToken(userID) {
  * @returns {Promise<Object>} An object containing the access token and token secret.
  */
 async function getOAuthAccessToken(userID, oauthToken, oauthVerifier) {
-  const { consumerKey, consumerSecret } = await db.GarminDBManager.getConsumerCredentials();
     const parameters = getOAuthParameters(consumerKey, oauthToken, oauthVerifier);
     const baseString = createBaseString('POST', 'https://connectapi.garmin.com/oauth-service/oauth/access_token', parameters);
     const signature = signRequest(baseString, consumerSecret, globalTokenSecret);
@@ -118,8 +120,7 @@ async function getOAuthAccessToken(userID, oauthToken, oauthVerifier) {
     const accessTokenData = Object.fromEntries(new URLSearchParams(response.data));
     const accessToken = accessTokenData.oauth_token;
     const accessTokenSecret = accessTokenData.oauth_token_secret;
-    const garminUserId = await getGarminUserId(userID, accessToken, accessTokenSecret);
-
+    const garminUserId = await getGarminUserId(accessToken, accessTokenSecret);
     // Save participant user data to the database
     await db.GarminDBManager.saveOrUpdateGarminUser(userID, garminUserId, accessToken, accessTokenSecret);
     return { accessToken: accessToken, accessTokenSecret: accessTokenSecret };
@@ -132,9 +133,8 @@ async function getOAuthAccessToken(userID, oauthToken, oauthVerifier) {
  * @param {string} oauthVerifier - The OAuth verifier.
  * @returns {Promise<Object>} An object containing the access token and token secret.
  */
-async function getGarminUserId(userID, accessToken, accessTokenSecret) {
+async function getGarminUserId(accessToken, accessTokenSecret) {
   const url = 'https://apis.garmin.com/wellness-api/rest/user/id';
-  const { consumerKey, consumerSecret } = await db.GarminDBManager.getConsumerCredentials();
   const parameters = getOAuthParameters(consumerKey, accessToken);
   const baseString = createBaseString('GET', url, parameters);
   const signature = signRequest(baseString, consumerSecret, accessTokenSecret);

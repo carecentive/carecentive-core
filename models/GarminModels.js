@@ -1,4 +1,4 @@
-const { Model } = require('./db');
+const { Model } = require('objection');
 const UserModel = require('./User');
 
 class GarminUser extends Model {
@@ -39,26 +39,7 @@ class GarminApiResponse extends Model {
   }
 }
 
-class GarminDevUser extends Model {
-  static get tableName() {
-    return 'garmin_api_dev';
-  }
-
-  static get relationMappings() {
-    return {
-      user: {
-        relation: Model.BelongsToOneRelation,
-        modelClass: UserModel, // Assuming UserModel is defined elsewhere
-        join: {
-          from: 'garmin_api_dev.user_id',
-          to: 'users.id'
-        }
-      }
-    };
-  }
-}
-
 // Assuming UserModel is defined in another file, import it here:
 // const UserModel = require('./path/to/UserModel');
 
-module.exports = { GarminUser, GarminApiResponse, GarminDevUser };
+module.exports = { GarminUser, GarminApiResponse };

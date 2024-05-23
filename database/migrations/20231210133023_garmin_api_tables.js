@@ -9,14 +9,6 @@ exports.up = function(knex) {
             table.text('response_data');
             table.timestamps(false, true);
         }),
-        knex.schema.createTable('garmin_api_dev', function(table) {
-            table.increments('id').primary();
-            table.integer('user_id').unsigned().notNullable();
-            table.foreign('user_id').references('users.id');
-            table.string('consumer_key');
-            table.string('consumer_secret');
-            table.timestamps(false, true);
-        }),
         knex.schema.createTable('garmin_users', function(table) {
             table.increments('id').primary();
             table.integer('user_id').unsigned().notNullable();
@@ -26,7 +18,6 @@ exports.up = function(knex) {
             table.string('garmin_access_secret');
             table.timestamps(false, true);
         }),
-
     ])
 };
 
