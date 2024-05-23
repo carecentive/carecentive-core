@@ -14,7 +14,7 @@ class User extends Model {
       join: {
         from: 'users.id',
         through: {
-          // persons_movies is the join table.
+          // user_roles is the join table
           from: 'user_roles.user_id',
           to: 'user_roles.role_id'
         },
