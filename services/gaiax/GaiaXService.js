@@ -9,6 +9,8 @@ const jose = require("jose");
 const ParticipantStorage = require("../../source/helpers/gaiax/ParticipantStorage");
 const DidService = require("./DidService");
 const Utils = require("../../source/Utils");
+const logger = require("../../source/Loggers");
+const util = require("util");
 
 class GaiaXCredentialService {
 
@@ -65,6 +67,7 @@ class GaiaXCredentialService {
         try {
             response = await axios.post(url, legalRegistrationNumberRequest, {headers: headers});
         } catch (e) {
+            logger.error(JSON.stringify(util.inspect(e), null, 2));
             console.log(e);
             throw e;
         }
@@ -132,6 +135,7 @@ class GaiaXCredentialService {
         try {
             response = await axios.post(url, complianceRequest, {headers: headers});
         } catch (e) {
+            logger.error(JSON.stringify(util.inspect(e), null, 2));
             console.log(e);
             throw e;
         }
