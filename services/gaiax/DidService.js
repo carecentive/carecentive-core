@@ -1,3 +1,4 @@
+const os = require("os")
 const crypto = require("crypto")
 const {pki} = require('node-forge');
 const fs = require('fs');
@@ -55,16 +56,16 @@ class DidService {
      * Create the Decentralized Identifier for a given participant
      *
      * @param {string} participantSlug
-     * @param {string} certificate
+     * @param {string[]} certificateChain
      * @returns {Promise<void>}
      */
-    static async createDid(participantSlug, certificate) {
+    static async createDid(participantSlug, certificateChain) {
 
-        let certObject = pki.certificateFromPem(certificate);
+        let certObject = pki.certificateFromPem(certificateChain[0]);
         // save cert to the public directory
-        await ParticipantStorage.storeFile(participantSlug, this.CERT_NAME, pki.certificateToPem(certObject));
+        await ParticipantStorage.storeFile(participantSlug, this.CERT_NAME, certificateChain.join(os.EOL + os.EOL));
 
-        let jwk = new crypto.X509Certificate(certificate).publicKey.export({"format": "jwk"});
+        let jwk = new crypto.X509Certificate(certificateChain[0]).publicKey.export({"format": "jwk"});
         jwk["alg"] = this.OID2ALG[certObject.signatureOid];
         jwk["x5u"] = this.getCertUrl(participantSlug);
 

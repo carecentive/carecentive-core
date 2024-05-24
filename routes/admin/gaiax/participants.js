@@ -10,14 +10,18 @@ const GaiaXService = require('../../../services/gaiax/GaiaXService');
 router.post('/', [authentication.authenticateToken, authentication.authenticateAdmin], async function(req, res, next) {
 
     try {
-        const certificate = req.body["cert"];
+        let certificates = req.body["certificateChain"];
+        if (! certificates instanceof Array) {
+            certificates = [certificates];
+        }
+
         const privateKey = req.body["key"];
         const vatId = req.body["vatId"];
         const legalName = req.body["organizationName"];
         const countryCode = req.body["countryCode"];
 
         let urls = [];
-        await DidService.createDid('default', certificate);
+        await DidService.createDid('default', certificates);
         urls.push(await GaiaXService.issueTermsAndConditions('default', privateKey));
         urls.push(await GaiaXService.issueLegalRegistrationNumber('default', vatId));
         urls.push(await GaiaXService.issueParticipant('default', privateKey, legalName, countryCode));
