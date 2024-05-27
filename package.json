@@ -1,6 +1,6 @@
 {
   "name": "@carecentive/carecentive-core",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "Core files for CareCentive",
   "exports": {
     "./*": "./*.js"
@@ -19,24 +19,28 @@
   },
   "homepage": "https://github.com/carecentive/carecentive-core#readme",
   "dependencies": {
-    "axios": "^0.21.1",
+    "axios": "^1.6.8",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "~1.4.4",
     "crypto-js": "^4.1.1",
-    "dotenv": "^8.2.0",
-    "express": "~4.16.1",
-    "form-data": "^3.0.0",
-    "http-errors": "~1.6.3",
-    "jsonwebtoken": "^8.5.1",
-    "knex": "^0.21.13",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "form-data": "^4.0.0",
+    "googleapis": "^135.1.0",
+    "http-errors": "^2.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "knex": "^3.1.0",
     "moment": "^2.29.4",
-    "morgan": "~1.9.1",
+    "morgan": "^1.10.0",
     "multiparty": "^4.2.2",
     "mv": "^2.1.1",
-    "mysql2": "^2.3.3",
+    "mysql2": "^3.9.4",
     "node-cron": "^3.0.0",
-    "objection": "^2.2.3",
+    "objection": "^3.1.4",
     "web-push": "^3.4.4",
     "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "eslint": "^8.52.0"
   }
 }
