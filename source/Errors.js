@@ -38,6 +38,22 @@ class AuthenticationMissingError extends Error {
   }
 }
 
+class AuthenticationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "AuthenticationError";
+    Error.captureStackTrace(this, AuthenticationError);
+  }
+}
+
+class AuthorizationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "AuthorizationError";
+    Error.captureStackTrace(this, AuthorizationError);
+  }
+}
+
 class SchedulerError extends Error {
   constructor(message) {
     super(message)
@@ -46,4 +62,13 @@ class SchedulerError extends Error {
   }
 }
 
-module.exports = {WithingsApiError, FitbitApiError, HttpError, UserTokenNotFoundError, AuthenticationMissingError, SchedulerError};
+module.exports = {
+  WithingsApiError,
+  FitbitApiError,
+  UserTokenNotFoundError,
+  HttpError,
+  AuthenticationMissingError,
+  AuthenticationError,
+  AuthorizationError,
+  SchedulerError,
+};
