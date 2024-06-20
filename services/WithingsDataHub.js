@@ -509,10 +509,18 @@ class WithingsDataHub {
    * -- (e.g. because data was updated again at a later point in time)
    */
 
-    let rawActivityRequests = await WithingsRawRequest.query().where({
-      user_id: userId,
-      request_type: "getactivity"
-    }).whereRaw('response NOT LIKE \'%"activities":[]%\'').orderBy('request_timestamp', 'ASC');
+  let constraints = {
+    request_type: "getactivity"
+  };
+
+  if (userId) {
+    constraints["user_id"] = userId;
+  }
+
+    let rawActivityRequests = await WithingsRawRequest.query()
+        .where(constraints)
+        .whereRaw('response NOT LIKE \'%"activities":[]%\'')
+        .orderBy('request_timestamp', 'ASC');
 
     // Object for the extracted data across all results
     let allDays = {};
@@ -568,11 +576,19 @@ class WithingsDataHub {
        * -- if information of one day is included in several original Withings API requests
        * -- (e.g. because data was updated again at a later point in time)
        */
+      let constraints = {
+        request_type: "getsummary"
+
+      };
+
+      if (userId) {
+        constraints['user_id'] = userId;
+      }
     
-        let rawSleepRequests = await WithingsRawRequest.query().where({
-          user_id: userId,
-          request_type: "getsummary"
-        }).whereRaw('response NOT LIKE \'%"series":[]%\'').orderBy('request_timestamp', 'ASC');
+        let rawSleepRequests = await WithingsRawRequest.query()
+            .where(constraints)
+            .whereRaw('response NOT LIKE \'%"series":[]%\'')
+            .orderBy('request_timestamp', 'ASC');
     
         // Object for the extracted data across all results
         let allDays = {};
@@ -634,12 +650,18 @@ class WithingsDataHub {
      * -- if information of one day is included in several original Withings API requests
      * -- (e.g. because data was updated again at a later point in time)
      */
-      
-    let rawMeasRequests = await WithingsRawRequest.query().where({
-      user_id: userId,
+    let constraints = {
       request_type: "getmeas"
-    }).whereRaw('response NOT LIKE \'%"measuregrps":[]%\'').orderBy('request_timestamp', 'ASC');
 
+    };
+    if (userId) {
+      constraints['user_id'] = userId;
+    }
+      
+    let rawMeasRequests = await WithingsRawRequest.query()
+        .where(constraints)
+        .whereRaw('response NOT LIKE \'%"measuregrps":[]%\'')
+        .orderBy('request_timestamp', 'ASC');
 
     // Object for the extracted data
     // Will contain the following data structure:
@@ -703,11 +725,16 @@ class WithingsDataHub {
      * -- if information of one day is included in several original Withings API requests
      * -- (e.g. because data was updated again at a later point in time)
      */
-      
-    let rawMeasRequests = await WithingsRawRequest.query().where({
-      user_id: userId,
+    let constraints = {
       request_type: "get"
-    }).orderBy('request_timestamp', 'ASC');
+    };
+    if (userId) {
+      constraints["user_id"] = userId;
+    }
+      
+    let rawMeasRequests = await WithingsRawRequest.query()
+        .where(constraints)
+        .orderBy('request_timestamp', 'ASC');
 
     // Object for the extracted data
     // Will contain the following data structure:
@@ -768,11 +795,17 @@ class WithingsDataHub {
        * -- if information of one day is included in several original Withings API requests
        * -- (e.g. because data was updated again at a later point in time)
        */
-        
-      let rawMeasRequests = await WithingsRawRequest.query().where({
-        user_id: userId,
+      let constraints = {
         request_type: "getintradayactivity"
-      }).orderBy('request_timestamp', 'ASC');
+
+      };
+      if (userId) {
+        constraints["user_id"] = userId;
+      }
+        
+      let rawMeasRequests = await WithingsRawRequest.query()
+          .where(constraints)
+          .orderBy('request_timestamp', 'ASC');
   
       // Object for the extracted data
       // Will contain the following data structure:
@@ -829,11 +862,17 @@ class WithingsDataHub {
      * -- if information of one day is included in several original Withings API requests
      * -- (e.g. because data was updated again at a later point in time)
      */
+    let constraints = {
+      request_type: "getworkouts"
+    };
+    if (userId) {
+      constraints["user_id"] = userId;
+    }
   
-      let rawWorkoutRequests = await WithingsRawRequest.query().where({
-        user_id: userId,
-        request_type: "getworkouts"
-      }).whereRaw('response NOT LIKE \'%"series":[]%\'').orderBy('request_timestamp', 'ASC');
+      let rawWorkoutRequests = await WithingsRawRequest.query()
+          .where(constraints)
+          .whereRaw('response NOT LIKE \'%"series":[]%\'')
+          .orderBy('request_timestamp', 'ASC');
   
       // Object for the extracted data across all results
       let allDays = {};

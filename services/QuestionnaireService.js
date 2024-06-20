@@ -3,9 +3,17 @@ const Questionnaire = require('../models/Questionnaire');
 
 class QuestionnaireService {
 
-  static async getQuestionnairebyName(userId, questionnaireName) {
-    let questionnaires = await Questionnaire.query().where('user_id', userId).where('questionnaire', questionnaireName);
-    return questionnaires;
+  /**
+   * Fetches all questionnaires
+   *
+   * @returns {Objection.QueryBuilder<Questionnaire, Questionnaire[]>}
+   */
+  static async getAllQuestionnaires() {
+    return Questionnaire.query();
+  }
+
+  static async getQuestionnaireByName(userId, questionnaireName) {
+    return Questionnaire.query().where('user_id', userId).where('questionnaire', questionnaireName);
   }
 
   static async deleteQuestionnaireById(questionnaireId) {
@@ -17,10 +25,7 @@ class QuestionnaireService {
 
     let deleted = await Questionnaire.query().deleteById(req.params.id);
 
-    if ( deleted ) {
-      return;
-    }
-    else {
+    if (! deleted) {
       throw new Error("QUESTIONNAIRE_DELETION_ERROR")
     }
   }
@@ -34,7 +39,7 @@ class QuestionnaireService {
       questionnaire: name,
       data: JSON.stringify(data),
       meta: JSON.stringify(meta),
-    });    
+    });
   }
 }
 
