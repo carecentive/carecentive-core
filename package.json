@@ -28,6 +28,7 @@
     "form-data": "^4.0.0",
     "googleapis": "^135.1.0",
     "http-errors": "^2.0.0",
+    "joi": "^17.13.1",
     "jose": "^5.3.0",
     "jsonld": "^8.3.2",
     "jsonwebtoken": "^9.0.2",
