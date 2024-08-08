@@ -1,0 +1,60 @@
+{
+  "@context": [
+    "https://www.w3.org/2018/credentials/v1",
+    "https://w3id.org/security/suites/jws-2020/v1",
+    "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#"
+  ],
+  "type": "VerifiableCredential",
+  "id": "{{{ credential_id }}}",
+  "issuer": "{{{ issuer }}}",
+  "issuanceDate": "{{{ issuance_date }}}",
+  "credentialSubject": {
+    "@id": "{{{ subject_id }}}",
+    "@type": "gax:DataAsset",
+    "gax:title": "{{{ data_asset_title }}}",
+    "gax:description": "{{{ data_asset_description }}}",
+    "gax:keyword": [
+        {{{ data_asset_keywords }}}
+    ],
+    "gax:category": [
+        {{{ data_asset_categories }}}
+    ],
+    "gax:publisher": "{{{ issuer }}}",
+    "gax:creator": "{{{ issuer }}}",
+    "gax:language": "http://id.loc.gov/vocabulary/iso639-1/{{{ lang_iso }}}",
+    "gax:distribution": {
+        "gax:title": "{{{ data_asset_title }}}",
+        "gax:description": "{{{ data_asset_description }}}",
+        "gax:created": "{{{ dataset_created_at }}}",
+        "gax:modified": "{{{ dataset_modified_at }}}",
+        "gax:mediaType": "application/json",
+        "gax:byteSize": "{{{ dataset_bytes }}}",
+        "gax:accessURL": "{{{ dataset_url }}}"
+    },
+    "gax:created": "{{{ dataset_created_at }}}",
+    "gax:modified": "{{{ dataset_modified_at }}}",
+    "gax:containsPersonalData": false,
+    "gax:sampleAvailable": false,
+    "gax:contractOffer": {
+        "@type": "gax-GX-DCS:contractOffer",
+        "gax:choiceOfLaw": "iso:Germany",
+        "gax:generalTerms": "Example text for the general terms",
+        "gax:confirmationRequired": false,
+        "gax:loggingMode": "gax:LoggingMandatory",
+        "gax:circulationDetails": "Example text for the circulation details",
+        "gax:permission": {
+            "@type": "gax:Permission",
+            "gax:assigner": "{{{ issuer }}}",
+            "gax:target": "{{{ dataset_url }}}",
+            "gax:action": "gax:USE",
+            "gax:negotiable": false,
+            "gax:postDuty": {
+            "@type": "gax:Duty",
+            "gax:action": {
+                "@id": "gax:LOG"
+                }
+            }
+        }
+    }
+  }
+}

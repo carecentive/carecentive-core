@@ -28,6 +28,7 @@ router.post('/', [authentication.authenticateToken, authentication.authenticateA
         urls.push(await GaiaXService.issueCompliance('default'));
         urls.push(await GaiaXService.issueDataResource('default', privateKey));
         urls.push(await GaiaXService.issueDataServiceOffering('default', privateKey));
+        urls.push(await GaiaXService.issueDataAsset('default', privateKey));
 
         res.status(201).json({"urls": urls});
     }
