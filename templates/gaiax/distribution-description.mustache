@@ -1,0 +1,27 @@
+{
+  "@context": [
+    "https://www.w3.org/2018/credentials/v1",
+    "https://w3id.org/security/suites/jws-2020/v1",
+    "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#",
+    "https://www.w3.org/ns/dcat.jsonld"
+  ],
+  "type": [
+    "VerifiableCredential"
+  ],
+  "id": "{{{ credential_id }}}",
+  "issuer": "{{{ issuer }}}",
+  "issuanceDate": "{{{ issuance_date }}}",
+  "credentialSubject": {
+    "id": "{{{ subject_id }}}",
+    "type": "gx:DistributionDescription",
+    "dct:title": "{{{ distribution_title }}}"
+    "dct:format": "application/json",
+    "gx:location": "{{{ data_resource_url }}}",
+    {{#dataset_issuance_date}}"dct:issued": "{{{ dataset_issuance_date }}}",{{/dataset_issuance_date}}
+    {{#dataset_expiration_date}}"gx:expirationDateTime": "{{{ dataset_expiration_date }}}",{{/dataset_expiration_date}}
+    {{#dataset_language}}"dcat:language": ["{{{ dataset_language }}}"],{{/dataset_language}}
+    {{#dataset_license_url}}"dct:license": ["{{{ dataset_license_url }}}"],{{/dataset_license_url}}
+    "gx:dataLicensors": [],
+    "gx:dataUsageAgreement": []
+  }
+}
