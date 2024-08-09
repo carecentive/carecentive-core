@@ -250,55 +250,6 @@ class GaiaXCredentialService {
     }
 
     /**
-     * Create and sign the "DataAsset" credential
-     *
-     * @param {string} participantSlug
-     * @param {string} privateKey
-     * @returns {Promise<string>} link to the credential
-     */
-    static async issueDataAsset(participantSlug, privateKey) {
-        const name = 'data-asset';
-        const datasetTitle = 'Test JSON medical dataset';
-        const datasetDescription = 'Test JSON medical dataset description';
-        const keywords = ["medical", "patients", "palliative care"].map(k => '"' + k + '"');
-        const categories = ["test cat A", "test cat B"].map(c => '"' + c + '"');
-        const language = 'en';
-        const datasetBytes = 1000;
-
-        // data
-        const dummyDataPath = 'data/dummy.json';
-        let datasetUrl = `${Utils.getBaseUrl()}/gaia-x/${participantSlug}/${dummyDataPath}`;
-        if (process.env["DATASET_URL"]) {
-            datasetUrl = process.env["DATASET_URL"];
-        }
-
-        let dataAssetTemplate = fs.readFileSync(
-            path.join(Utils.getCoreProjectPath(), "templates/gaiax/data-asset.mustache"),
-            "utf8"
-        );
-        let dataAsset = mustache.render(dataAssetTemplate, {
-            "issuer": DidService.getDid(participantSlug),
-            "credential_id": this.getCredentialId(participantSlug, name),
-            "subject_id": this.getCredentialSubject(participantSlug, name),
-            "issuance_date": this.getIssuanceDateNow(),
-            "data_asset_title": datasetTitle,
-            "data_asset_description": datasetDescription,
-            "data_asset_keywords": keywords.join(", "),
-            "data_asset_categories": categories.join(", "),
-            "lang_iso": language,
-            "dataset_created_at": this.getIssuanceDateNow(),
-            "dataset_modified_at": this.getIssuanceDateNow(),
-            "dataset_bytes": datasetBytes,
-            "dataset_url": datasetUrl,
-        });
-        console.log(dataAsset);
-        dataAsset = await this.signCredential(participantSlug, dataAsset, privateKey);
-        await ParticipantStorage.storeFile(participantSlug, name + '.json', dataAsset);
-
-        return this.getCredentialId(participantSlug, name);
-    }
-
-    /**
      * Signs the given Gaia-X credential and returns it
      *
      * @param {string} participantSlug
