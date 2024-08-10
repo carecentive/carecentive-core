@@ -4,7 +4,7 @@ exports.up = function(knex) {
         table.increments("id").primary();
         table.boolean("active").notNullable();
         table.datetime("valid_till");
-        table.specificType("access_token", 'CHAR(80)').notNullable();
+        table.specificType("access_token", 'CHAR(80)').notNullable().unique();
         table.timestamps(true, true);
     });
 };

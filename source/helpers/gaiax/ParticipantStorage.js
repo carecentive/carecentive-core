@@ -5,6 +5,16 @@ const Utils = require("../../Utils");
 class ParticipantStorage {
 
     /**
+     * Removes Participant's directory
+     *
+     * @param participantSlug
+     * @returns {Promise<void>}
+     */
+    static async cleanupParticipant(participantSlug) {
+        fs.rmSync(this.getAbsolutePath(participantSlug), {recursive: true, force: true});
+    }
+
+    /**
      * Stores a file to a dedicated directory for a Gaia-X participant in the public directory
      *
      * @param {string} participantSlug

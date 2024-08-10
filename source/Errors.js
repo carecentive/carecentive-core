@@ -8,9 +8,9 @@ class WithingsApiError extends Error {
 
 class FitbitApiError extends Error {
   constructor(message) {
-    super(message)
-    this.name = 'FitbitApiError'
-    Error.captureStackTrace(this, FitbitApiError)
+    super(message);
+    this.name = 'FitbitApiError';
+    Error.captureStackTrace(this, FitbitApiError);
   }
 }
 
@@ -56,9 +56,35 @@ class AuthorizationError extends Error {
 
 class SchedulerError extends Error {
   constructor(message) {
-    super(message)
-    this.name = 'SchedulerError'
-    Error.captureStackTrace(this, SchedulerError)
+    super(message);
+    this.name = 'SchedulerError';
+    Error.captureStackTrace(this, SchedulerError);
+  }
+}
+
+class ConflictError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ConflictError';
+    Error.captureStackTrace(this, ConflictError);
+  }
+}
+
+class GXRemoteServiceError extends Error {
+  constructor(message, responseStatus, responseBody) {
+    super(message);
+    this.name = 'GXRemoteServiceError';
+    this.responseStatus = responseStatus;
+    this.responseBody = responseBody;
+    Error.captureStackTrace(this, GXRemoteServiceError);
+  }
+}
+
+class MissingParamError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'MissingParamError';
+    Error.captureStackTrace(this, MissingParamError);
   }
 }
 
@@ -71,4 +97,7 @@ module.exports = {
   AuthenticationError,
   AuthorizationError,
   SchedulerError,
+  ConflictError,
+  GXRemoteServiceError,
+  MissingParamError,
 };

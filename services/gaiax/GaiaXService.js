@@ -8,34 +8,61 @@ const jsonld = require("jsonld");
 const jose = require("jose");
 const ParticipantStorage = require("../../source/helpers/gaiax/ParticipantStorage");
 const DidService = require("./DidService");
+const {Participant} = require("../../models/Participant");
 const Utils = require("../../source/Utils");
-const logger = require("../../source/Loggers");
-const util = require("util");
+const Errors = require("../../source/Errors");
 
 class GaiaXCredentialService {
+
+    /**
+     * Store credential names
+     */
+    static CREDENTIAL_NAME_T_AND_C = "terms-and-conditions";
+    static CREDENTIAL_NAME_LRN = "legal-registration-number";
+    static CREDENTIAL_NAME_PARTICIPANT = "participant";
+    static CREDENTIAL_NAME_COMPLIANCE = "compliance";
+    static CREDENTIAL_NAME_DATA_RESOURCE = "data-resource";
+    static CREDENTIAL_NAME_SERVICE_OFFERING = "service-offering";
+
+    /**
+     * Insert URLs to Gaia-X credentials to the Participant object
+     *
+     * @param {Participant} participant
+     * @returns {Participant}
+     */
+    static embedUrls(participant) {
+        participant["urls"] = [
+            this.getCredentialId(participant['slug'], this.CREDENTIAL_NAME_T_AND_C),
+            this.getCredentialId(participant['slug'], this.CREDENTIAL_NAME_LRN),
+            this.getCredentialId(participant['slug'], this.CREDENTIAL_NAME_PARTICIPANT),
+            this.getCredentialId(participant['slug'], this.CREDENTIAL_NAME_COMPLIANCE),
+            this.getCredentialId(participant['slug'], this.CREDENTIAL_NAME_DATA_RESOURCE),
+            this.getCredentialId(participant['slug'], this.CREDENTIAL_NAME_SERVICE_OFFERING),
+        ];
+        return participant;
+    }
 
     /**
      * Create and sign the "GaiaXTermsAndConditions" credential
      *
      * @param {string} participantSlug
      * @param {string} privateKey
-     * @returns {Promise<string>} link to the credential
+     * @returns {Promise<void>}
      */
     static async issueTermsAndConditions(participantSlug, privateKey) {
-        const name = 'terms-and-conditions';
+        const name = this.CREDENTIAL_NAME_T_AND_C;
         let termsAndCondsTemplate = fs.readFileSync(
             path.join(Utils.getCoreProjectPath(), "templates/gaiax/terms-and-conditions.mustache"),
             "utf8"
         );
         let termsAndConditions = mustache.render(termsAndCondsTemplate, {
             "issuer": DidService.getDid(participantSlug),
-            "credential_id": this.getCredentialId(participantSlug, name),          "subject_id": this.getCredentialSubject(participantSlug, name),
+            "credential_id": this.getCredentialId(participantSlug, name),
+            "subject_id": this.getCredentialSubject(participantSlug, name),
             "issuance_date": this.getIssuanceDateNow(),
         });
         termsAndConditions = await this.signCredential(participantSlug, termsAndConditions, privateKey);
         await ParticipantStorage.storeFile(participantSlug, name + '.json', termsAndConditions);
-
-        return this.getCredentialId(participantSlug, name);
     }
 
     /**
@@ -43,10 +70,10 @@ class GaiaXCredentialService {
      *
      * @param {string} participantSlug
      * @param {string} vatId
-     * @returns {Promise<string>} link to the credential
+     * @returns {Promise<void>}
      */
     static async issueLegalRegistrationNumber(participantSlug, vatId) {
-        const name = 'legal-registration-number';
+        const name = this.CREDENTIAL_NAME_LRN;
         let legalRegistrationNumberTemplate = fs.readFileSync(
             path.join(Utils.getCoreProjectPath(), "templates/gaiax/lrn-request.mustache"),
             "utf8"
@@ -66,14 +93,14 @@ class GaiaXCredentialService {
         try {
             response = await axios.post(url, legalRegistrationNumberRequest, {headers: headers});
         } catch (e) {
-            logger.error(JSON.stringify(util.inspect(e), null, 2));
-            console.log(e);
+            if (e instanceof axios.AxiosError && e.response) {
+                throw new Errors.GXRemoteServiceError("Legal Registration Number call request failed.", e.response.status, e.response.data);
+            }
+
             throw e;
         }
 
         await ParticipantStorage.storeFile(participantSlug, name + '.json', JSON.stringify(response.data, null, "  "));
-
-        return this.getCredentialId(participantSlug, name);
     }
 
     /**
@@ -83,10 +110,10 @@ class GaiaXCredentialService {
      * @param {string} privateKey
      * @param {string} legalName
      * @param {string} countryCode
-     * @returns {Promise<string>} link to the credential
+     * @returns {Promise<void>}
      */
     static async issueParticipant(participantSlug, privateKey, legalName, countryCode) {
-        const name = 'participant';
+        const name = this.CREDENTIAL_NAME_PARTICIPANT;
         let participantTemplate = fs.readFileSync(
             path.join(Utils.getCoreProjectPath(), "templates/gaiax/participant.mustache"),
             "utf8"
@@ -96,24 +123,22 @@ class GaiaXCredentialService {
             "credential_id": this.getCredentialId(participantSlug, name),
             "subject_id": this.getCredentialSubject(participantSlug, name),
             "issuance_date": this.getIssuanceDateNow(),
-            "lrn_cs_id": this.getCredentialSubject(participantSlug, "legal-registration-number"),
+            "lrn_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_LRN),
             "legal_name": legalName,
             "country_code": countryCode,
         });
         participant = await this.signCredential(participantSlug, participant, privateKey);
         await ParticipantStorage.storeFile(participantSlug, name + '.json', participant);
-
-        return this.getCredentialId(participantSlug, name);
     }
 
     /**
      * Send request to Gaia-X notary to have legal registration number credential issued
      *
      * @param {string} participantSlug
-     * @returns {Promise<string>} link to the credential
+     * @returns {Promise<void>}
      */
     static async issueCompliance(participantSlug) {
-        const name = 'compliance';
+        const name = this.CREDENTIAL_NAME_COMPLIANCE;
         let complianceTemplate = fs.readFileSync(
             path.join(Utils.getCoreProjectPath(), "templates/gaiax/verifiable-presentation.mustache"),
             "utf8"
@@ -134,14 +159,14 @@ class GaiaXCredentialService {
         try {
             response = await axios.post(url, complianceRequest, {headers: headers});
         } catch (e) {
-            logger.error(JSON.stringify(util.inspect(e), null, 2));
-            console.log(e);
+            if (e instanceof axios.AxiosError && e.response) {
+                throw new Errors.GXRemoteServiceError("Compliance call request failed.", e.response.status, e.response.data);
+            }
+
             throw e;
         }
 
         await ParticipantStorage.storeFile(participantSlug, name + '.json', JSON.stringify(response.data, null, "  "));
-
-        return this.getCredentialId(participantSlug, name);
     }
 
     /**
@@ -149,10 +174,10 @@ class GaiaXCredentialService {
      *
      * @param {string} participantSlug
      * @param {string} privateKey
-     * @returns {Promise<string>} link to the credential
+     * @returns {Promise<void>}
      */
     static async issueDataResource(participantSlug, privateKey) {
-        const name = 'data-resource';
+        const name = this.CREDENTIAL_NAME_DATA_RESOURCE;
         const dummyDataPath = 'data/dummy.json';
         let datasetUrl = `${Utils.getBaseUrl()}/gaia-x/${participantSlug}/${dummyDataPath}`;
         if (process.env["DATASET_URL"]) {
@@ -201,13 +226,11 @@ class GaiaXCredentialService {
             "credential_id": this.getCredentialId(participantSlug, name),
             "subject_id": this.getCredentialSubject(participantSlug, name),
             "issuance_date": this.getIssuanceDateNow(),
-            "participant_cs_id": this.getCredentialSubject(participantSlug, "participant"),
+            "participant_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_PARTICIPANT),
             "data_resource_url": datasetUrl,
         });
         dataResource = await this.signCredential(participantSlug, dataResource, privateKey);
         await ParticipantStorage.storeFile(participantSlug, name + '.json', dataResource);
-
-        return this.getCredentialId(participantSlug, name);
     }
 
     /**
@@ -215,10 +238,10 @@ class GaiaXCredentialService {
      *
      * @param {string} participantSlug
      * @param {string} privateKey
-     * @returns {Promise<string>} link to the credential
+     * @returns {Promise<void>}
      */
     static async issueDataServiceOffering(participantSlug, privateKey) {
-        const name = 'service-offering';
+        const name = this.CREDENTIAL_NAME_SERVICE_OFFERING;
         const termsAndConditionsPath = 'data/terms-and-conditions.txt';
         let termsAndConditionsUrl = `${Utils.getBaseUrl()}/gaia-x/${participantSlug}/${termsAndConditionsPath}`;
         let termsAndConditions = Utils.getEnvVar("DATASET_TERMS_AND_CONDITIONS");
@@ -238,15 +261,13 @@ class GaiaXCredentialService {
             "credential_id": this.getCredentialId(participantSlug, name),
             "subject_id": this.getCredentialSubject(participantSlug, name),
             "issuance_date": this.getIssuanceDateNow(),
-            "participant_cs_id": this.getCredentialSubject(participantSlug, "participant"),
-            "data_resource_cs_id": this.getCredentialSubject(participantSlug, "data-resource"),
+            "participant_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_PARTICIPANT),
+            "data_resource_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_DATA_RESOURCE),
             "terms_and_conditions_url": termsAndConditionsUrl,
             "terms_and_conditions_hash": termsAndConditionsHash,
         });
         serviceOffering = await this.signCredential(participantSlug, serviceOffering, privateKey);
         await ParticipantStorage.storeFile(participantSlug, name + '.json', serviceOffering);
-
-        return this.getCredentialId(participantSlug, name);
     }
 
     /**
