@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const DataProductValidator = require("./DataProductValidator");
 
 class ThirdPartyTokenValidator {
 
@@ -10,6 +11,7 @@ class ThirdPartyTokenValidator {
         return Joi.object({
             active: Joi.bool().required(),
             validTill: Joi.date().greater('now').allow(null),
+            route: Joi.string().valid(...DataProductValidator.ALLOWED_ROUTES).allow(null),
         });
     }
 }

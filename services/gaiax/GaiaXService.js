@@ -8,9 +8,10 @@ const jsonld = require("jsonld");
 const jose = require("jose");
 const ParticipantStorage = require("../../source/helpers/gaiax/ParticipantStorage");
 const DidService = require("./DidService");
-const {Participant} = require("../../models/Participant");
 const Utils = require("../../source/Utils");
 const Errors = require("../../source/Errors");
+const { v4: uuidv4 } = require('uuid');
+const {JWSSignatureVerificationFailed} = require("jose/errors");
 
 class GaiaXCredentialService {
 
@@ -23,6 +24,10 @@ class GaiaXCredentialService {
     static CREDENTIAL_NAME_COMPLIANCE = "compliance";
     static CREDENTIAL_NAME_DATA_RESOURCE = "data-resource";
     static CREDENTIAL_NAME_SERVICE_OFFERING = "service-offering";
+    static CREDENTIAL_NAME_DATA_PRODUCT_DESCRIPTION = "data-product-description";
+    static CREDENTIAL_NAME_DATASET_DESCRIPTION = "dataset-description";
+    static CREDENTIAL_NAME_DATA_USAGE = "data-usage";
+    static CREDENTIAL_NAME_DATA_PRODUCT_USAGE_CONTRACT = "data-product-usage-contract";
 
     /**
      * Insert URLs to Gaia-X credentials to the Participant object
@@ -30,16 +35,33 @@ class GaiaXCredentialService {
      * @param {Participant} participant
      * @returns {Participant}
      */
-    static embedUrls(participant) {
+    static embedParticipantUrls(participant) {
         participant["urls"] = [
             this.getCredentialId(participant['slug'], this.CREDENTIAL_NAME_T_AND_C),
             this.getCredentialId(participant['slug'], this.CREDENTIAL_NAME_LRN),
             this.getCredentialId(participant['slug'], this.CREDENTIAL_NAME_PARTICIPANT),
             this.getCredentialId(participant['slug'], this.CREDENTIAL_NAME_COMPLIANCE),
-            this.getCredentialId(participant['slug'], this.CREDENTIAL_NAME_DATA_RESOURCE),
-            this.getCredentialId(participant['slug'], this.CREDENTIAL_NAME_SERVICE_OFFERING),
         ];
         return participant;
+    }
+
+    /**
+     * Insert URLs to Gaia-X credentials to the DataProducts object
+     *
+     * @param {DataProduct} dataProduct
+     * @returns {DataProduct}
+     */
+    static embedDataProductUrls(dataProduct) {
+        let handle = dataProduct['participant']['slug'] + '/' + dataProduct.id;
+        dataProduct["urls"] = [
+            this.getCredentialId(handle, this.CREDENTIAL_NAME_DATA_RESOURCE),
+            this.getCredentialId(handle, this.CREDENTIAL_NAME_SERVICE_OFFERING),
+            this.getCredentialId(handle, this.CREDENTIAL_NAME_DATA_PRODUCT_DESCRIPTION),
+            this.getCredentialId(handle, this.CREDENTIAL_NAME_DATASET_DESCRIPTION),
+            this.getCredentialId(handle, this.CREDENTIAL_NAME_DATA_USAGE),
+        ];
+        delete dataProduct['participant'];
+        return dataProduct;
     }
 
     /**
@@ -173,49 +195,26 @@ class GaiaXCredentialService {
      * Create and sign the "DataResource" credential
      *
      * @param {string} participantSlug
+     * @param {string} uuid
+     * @param {string} dataResourceTitle
+     * @param {string} dataResourceDescription
+     * @param {string} datasetUrl
      * @param {string} privateKey
+     * @param {string} policy
+     * @param {string} licenseUrl
      * @returns {Promise<void>}
      */
-    static async issueDataResource(participantSlug, privateKey) {
+    static async issueDataResource(
+        participantSlug,
+        uuid,
+        dataResourceTitle,
+        dataResourceDescription,
+        datasetUrl,
+        policy,
+        licenseUrl,
+        privateKey
+    ) {
         const name = this.CREDENTIAL_NAME_DATA_RESOURCE;
-        const dummyDataPath = 'data/dummy.json';
-        let datasetUrl = `${Utils.getBaseUrl()}/gaia-x/${participantSlug}/${dummyDataPath}`;
-        if (process.env["DATASET_URL"]) {
-            datasetUrl = process.env["DATASET_URL"];
-        } else if (!await ParticipantStorage.fileExists(participantSlug, dummyDataPath)) {
-            // generate dummy data
-            await ParticipantStorage.storeFile(participantSlug, dummyDataPath, JSON.stringify({
-                data: [
-                    {
-                        "patient_id": "PT001",
-                        "age": 45,
-                        "gender": "Male",
-                        "diagnosis": "Hypertension",
-                        "treatment": "Drug A",
-                        "response": "Positive",
-                        "duration_days": 30
-                    },
-                    {
-                        "patient_id": "PT002",
-                        "age": 32,
-                        "gender": "Female",
-                        "diagnosis": "Diabetes",
-                        "treatment": "Drug B",
-                        "response": "Negative",
-                        "duration_days": 60
-                    },
-                    {
-                        "patient_id": "PT003",
-                        "age": 50,
-                        "gender": "Male",
-                        "diagnosis": "Arthritis",
-                        "treatment": "Placebo",
-                        "response": "Neutral",
-                        "duration_days": 45
-                    }
-                ]
-            }, null, "  "));
-        }
 
         let dataResourceTemplate = fs.readFileSync(
             path.join(Utils.getCoreProjectPath(), "templates/gaiax/data-resource.mustache"),
@@ -227,31 +226,39 @@ class GaiaXCredentialService {
             "subject_id": this.getCredentialSubject(participantSlug, name),
             "issuance_date": this.getIssuanceDateNow(),
             "participant_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_PARTICIPANT),
+            "data_resource_title": dataResourceTitle,
+            "data_resource_description": dataResourceDescription,
             "data_resource_url": datasetUrl,
+            "policy_contents": datasetUrl,
+            "license_url": datasetUrl,
         });
         dataResource = await this.signCredential(participantSlug, dataResource, privateKey);
-        await ParticipantStorage.storeFile(participantSlug, name + '.json', dataResource);
+        await ParticipantStorage.storeFile(participantSlug, `${uuid}/${name}.json`, dataResource);
     }
 
     /**
      * Create and sign the "ServiceOffering" credential
      *
      * @param {string} participantSlug
+     * @param {string} uuid
+     * @param {string} serviceOfferingName
+     * @param {string} termsAndConditionsUrl
+     * @param {string} termsAndConditionsHash
+     * @param {string} policy
      * @param {string} privateKey
      * @returns {Promise<void>}
      */
-    static async issueDataServiceOffering(participantSlug, privateKey) {
+    static async issueDataServiceOffering(
+        participantSlug,
+        uuid,
+        serviceOfferingName,
+        termsAndConditionsUrl,
+        termsAndConditionsHash,
+        policy,
+        privateKey
+    ) {
         const name = this.CREDENTIAL_NAME_SERVICE_OFFERING;
-        const termsAndConditionsPath = 'data/terms-and-conditions.txt';
-        let termsAndConditionsUrl = `${Utils.getBaseUrl()}/gaia-x/${participantSlug}/${termsAndConditionsPath}`;
-        let termsAndConditions = Utils.getEnvVar("DATASET_TERMS_AND_CONDITIONS");
 
-        // store term and conditions
-        if(!await ParticipantStorage.fileExists(participantSlug, termsAndConditionsPath)) {
-            await ParticipantStorage.storeFile(participantSlug, termsAndConditionsPath, termsAndConditions);
-        }
-
-        let termsAndConditionsHash = crypto.createHash("sha256").update(termsAndConditions).digest('hex');
         let serviceOfferingTemplate = fs.readFileSync(
             path.join(Utils.getCoreProjectPath(), "templates/gaiax/service-offering.mustache"),
             "utf8"
@@ -265,9 +272,205 @@ class GaiaXCredentialService {
             "data_resource_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_DATA_RESOURCE),
             "terms_and_conditions_url": termsAndConditionsUrl,
             "terms_and_conditions_hash": termsAndConditionsHash,
+            "service_offering_name": serviceOfferingName,
+            "policy_contents": policy
         });
         serviceOffering = await this.signCredential(participantSlug, serviceOffering, privateKey);
-        await ParticipantStorage.storeFile(participantSlug, name + '.json', serviceOffering);
+        await ParticipantStorage.storeFile(participantSlug, `${uuid}/${name}.json`, serviceOffering);
+    }
+
+    /**
+     * Create and sign the "DataProductDescription" credential
+     *
+     * @param {string} participantSlug
+     * @param {string} uuid
+     * @param {string} dataProductTitle
+     * @param {string|null} dataProductDescription
+     * @param {string} termsAndConditionsUrl
+     * @param {string} termsAndConditionsHash
+     * @param {string} licenseUrl
+     * @param {string} policy
+     * @param {Date|null} obsoleteDate
+     * @param {string} privateKey
+     * @returns {Promise<void>}
+     */
+    static async issueDataProductDescription(
+        participantSlug,
+        uuid,
+        dataProductTitle,
+        dataProductDescription,
+        termsAndConditionsUrl,
+        termsAndConditionsHash,
+        licenseUrl,
+        policy,
+        obsoleteDate,
+        privateKey
+    ) {
+        const name = this.CREDENTIAL_NAME_DATA_PRODUCT_DESCRIPTION;
+
+        let dataProductDescriptionTemplate = fs.readFileSync(
+            path.join(Utils.getCoreProjectPath(), "templates/gaiax/data-product-description.mustache"),
+            "utf8"
+        );
+        let dataProductDescriptionCredential = mustache.render(dataProductDescriptionTemplate, {
+            "issuer": DidService.getDid(participantSlug),
+            "credential_id": this.getCredentialId(participantSlug, name),
+            "subject_id": this.getCredentialSubject(participantSlug, name),
+            "issuance_date": this.getIssuanceDateNow(),
+            "participant_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_PARTICIPANT),
+            "dataset_description_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_DATASET_DESCRIPTION),
+            "terms_and_conditions_url": termsAndConditionsUrl,
+            "terms_and_conditions_hash": termsAndConditionsHash,
+            "data_product_title": dataProductTitle,
+            "data_product_description": dataProductDescription,
+            "license_url": licenseUrl,
+            "policy_contents": policy,
+            "obsolete_date": obsoleteDate ? moment(obsoleteDate).toISOString(true) : null,
+            "uuid": uuid,
+        });
+
+        dataProductDescriptionCredential = await this.signCredential(participantSlug, dataProductDescriptionCredential, privateKey);
+        await ParticipantStorage.storeFile(participantSlug, `${uuid}/${name}.json`, dataProductDescriptionCredential);
+    }
+
+    /**
+     * Create and sign the "DatasetDescription" credential
+     *
+     * @param {string} participantSlug
+     * @param {string} dataProductUuid
+     * @param {string} datasetTitle
+     * @param {string} dataResourceUrl
+     * @param {string|null} datasetLicenseUrl
+     * @param {string|null} datasetLanguage
+     * @param {Date|null} datasetIssuanceDate
+     * @param {Date|null} datasetExpirationDate
+     * @param {string} privateKey
+     * @returns {Promise<string>}
+     */
+    static async issueDatasetDescription(
+        participantSlug,
+        dataProductUuid,
+        datasetTitle,
+        dataResourceUrl,
+        datasetLicenseUrl,
+        datasetLanguage,
+        datasetIssuanceDate,
+        datasetExpirationDate,
+        privateKey
+    ) {
+        const name = this.CREDENTIAL_NAME_DATASET_DESCRIPTION;
+        const uuid = uuidv4();
+
+        let datasetDescriptionTemplate = fs.readFileSync(
+            path.join(Utils.getCoreProjectPath(), "templates/gaiax/dataset-description.mustache"),
+            "utf8"
+        );
+        let datasetDescription = mustache.render(datasetDescriptionTemplate, {
+            "issuer": DidService.getDid(participantSlug),
+            "credential_id": this.getCredentialId(participantSlug, name),
+            "subject_id": this.getCredentialSubject(participantSlug, name),
+            "issuance_date": this.getIssuanceDateNow(),
+            "dataset_title": datasetTitle,
+            "distribution_title": datasetTitle,
+            "dataset_license_url": datasetLicenseUrl,
+            "dataset_issuance_date": datasetIssuanceDate ? moment(datasetIssuanceDate).toISOString(true) : null,
+            "dataset_expiration_date": datasetExpirationDate ? moment(datasetExpirationDate).toISOString(true) : null,
+            "dataset_language": datasetLanguage,
+            "data_resource_url": dataResourceUrl,
+            "uuid": uuid,
+        });
+
+        datasetDescription = await this.signCredential(participantSlug, datasetDescription, privateKey);
+        await ParticipantStorage.storeFile(participantSlug, `${dataProductUuid}/${name}.json`, datasetDescription);
+
+        return uuid;
+    }
+
+    /**
+     * Create and sign the "DataUsage" credential
+     *
+     * @param {string} participantSlug
+     * @param {string} uuid
+     * @param {string} privateKey
+     * @returns {Promise<void>}
+     */
+    static async issueDataUsage(participantSlug, uuid, privateKey) {
+        const name = this.CREDENTIAL_NAME_DATA_USAGE;
+
+        let dataUsageTemplate = fs.readFileSync(
+            path.join(Utils.getCoreProjectPath(), "templates/gaiax/data-usage.mustache"),
+            "utf8"
+        );
+        let dataUsageCredential = mustache.render(dataUsageTemplate, {
+            "issuer": DidService.getDid(participantSlug),
+            "credential_id": this.getCredentialId(participantSlug, name),
+            "subject_id": this.getCredentialSubject(participantSlug, name),
+            "issuance_date": this.getIssuanceDateNow(),
+        });
+        dataUsageCredential = await this.signCredential(participantSlug, dataUsageCredential, privateKey);
+        await ParticipantStorage.storeFile(participantSlug, `${uuid}/${name}.json`, dataUsageCredential);
+    }
+
+    /**
+     * Create and sign the "DataProductUsageContract" credential
+     *
+     * @param {string} participantSlug
+     * @param {string} consumerCsId
+     * @param {string} termsOfUsage
+     * @returns {Promise<any>}
+     */
+    static async createDataProductUsageContract(participantSlug, consumerCsId, termsOfUsage) {
+        const name = this.CREDENTIAL_NAME_DATA_PRODUCT_USAGE_CONTRACT;
+
+        let dataProductDescriptionTemplate = fs.readFileSync(
+            path.join(Utils.getCoreProjectPath(), "templates/gaiax/data-product-usage-contract.mustache"),
+            "utf8"
+        );
+
+        return JSON.parse(mustache.render(dataProductDescriptionTemplate, {
+            "issuer": DidService.getDid(participantSlug),
+            "credential_id": this.getCredentialId(participantSlug, name),
+            "subject_id": this.getCredentialSubject(participantSlug, name),
+            "issuance_date": this.getIssuanceDateNow(),
+            "provider_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_PARTICIPANT),
+            "consumer_cs_id": consumerCsId,
+            "data_product_description_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_DATA_PRODUCT_DESCRIPTION),
+            "data_product_terms_of_usage": termsOfUsage,
+            "data_usage_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_DATA_USAGE),
+        }));
+    }
+
+    /**
+     * Normalizes provided credential and computes its hash
+     *
+     * @param {object} credential
+     * @returns {Promise<string>}
+     */
+    static async computeCredentialHash(credential) {
+        let credentialCopy = credential;
+        // omit proof from hash calculation
+        if ('proof' in credential) {
+            credentialCopy = {...credential};
+            delete credentialCopy['proof'];
+        }
+        return this.computeCredentialHashRaw(credentialCopy);
+    }
+
+    /**
+     * Computes a hash of provided credential; skips proof checks (computes hash of the whole credential, not just body)
+     *
+     * @param credential
+     * @returns {Promise<string>}
+     */
+    static async computeCredentialHashRaw(credential) {
+        // normalize from JSON-LD to RDF
+        const normalized = await jsonld.normalize(
+            credential,
+            {algorithm: 'URDNA2015', format: 'application/n-quads'}
+        );
+
+        // compute hash of the credential
+        return crypto.createHash("sha256").update(normalized).digest('hex');
     }
 
     /**
@@ -281,14 +484,8 @@ class GaiaXCredentialService {
     static async signCredential(participantSlug, credential, privateKey) {
         let parsedCredential = JSON.parse(credential);
 
-        // normalize from JSON-LD to RDF
-        const normalized = await jsonld.normalize(
-            parsedCredential,
-            {algorithm: 'URDNA2015', format: 'application/n-quads'}
-        );
-
         // create and sign the hash of the credential
-        const hash = crypto.createHash("sha256").update(normalized).digest('hex');
+        const hash = await this.computeCredentialHash(parsedCredential);
         const jws = await new jose.CompactSign(new TextEncoder().encode(hash))
             .setProtectedHeader({"alg": "PS256", "b64": false, "crit": ["b64"]})
             .sign(crypto.createPrivateKey(privateKey));
@@ -302,6 +499,37 @@ class GaiaXCredentialService {
         };
 
         return JSON.stringify(parsedCredential, null, "  ");
+    }
+
+    /**
+     * Verifies the credential's signature
+     *
+     * @param {object} credential
+     * @param {KeyObject} publicKey
+     * @returns {Promise<boolean>}
+     */
+    static async verifyCredential(credential, publicKey) {
+        let jwsExploded = credential['proof']['jws'].split('.');
+        const hash = await this.computeCredentialHash(credential);
+
+        try {
+            await jose.flattenedVerify(
+                {
+                    protected: jwsExploded[0],
+                    payload: new TextEncoder().encode(hash),
+                    signature: jwsExploded[2]
+                },
+                publicKey
+            );
+        }catch (e) {
+            if(e instanceof  JWSSignatureVerificationFailed){
+                return false;
+            }
+
+            throw e;
+        }
+
+        return true;
     }
 
     /**

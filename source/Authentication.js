@@ -3,6 +3,7 @@ const User = require('../models/User');
 const ThirdPartyToken = require("../models/ThirdPartyToken");
 const Errors = require("../source/Errors");
 const withErrorHandler = require("./errorHandler");
+const util = require('util');
 
 /**
  * Express Middleware for token authentication
@@ -93,6 +94,10 @@ function authenticateThirdPartyOrToken(req, res, next) {
 
         if (storedToken.valid_till && storedToken.valid_till < Date.now()) {
             throw new Errors.AuthenticationError("The authentication token is expired");
+        }
+
+        if(storedToken.route && storedToken.route !== req.baseUrl) {
+            throw new Errors.AuthorizationError("Authorization outside of scope");
         }
 
         req.authData = {thirdParty: true};

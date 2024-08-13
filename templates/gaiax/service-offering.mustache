@@ -11,10 +11,11 @@
   "credentialSubject": {
     "id": "{{{ subject_id }}}",
     "type": "gx:ServiceOffering",
+    "gx:name": "{{{ service_offering_name }}}",
     "gx:providedBy": {
       "id": "{{{ participant_cs_id }}}"
     },
-    "gx:policy": "policy contents test",
+    "gx:policy": "{{{ policy_contents }}}",
     "gx:termsAndConditions": {
       "gx:URL": "{{{ terms_and_conditions_url }}}",
       "gx:hash": "{{{ terms_and_conditions_hash }}}"
@@ -24,6 +25,8 @@
       "gx:accessType": "digital",
       "gx:formatType": "application/json"
     },
-    "gx:aggregationOf": "{{{ data_resource_cs_id }}}"
+    "gx:aggregationOf": [
+        {"id": "{{{ data_resource_cs_id }}}"}
+    ]
   }
 }

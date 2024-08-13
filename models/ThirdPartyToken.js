@@ -15,6 +15,11 @@ class ThirdPartyToken extends Model {
      * @type {string}
      */
     access_token;
+
+    /**
+     * @type {string|null}
+     */
+    route;
     created_at;
     updated_at;
     static get tableName() {

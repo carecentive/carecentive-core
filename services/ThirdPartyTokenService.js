@@ -5,13 +5,14 @@ class ThirdPartyTokenService {
     /**
      * Creates a new API access token for third parties and stores it
      *
-     * @param inputData input data
-     * @returns {Objection.QueryBuilder<ThirdPartyToken, ThirdPartyToken>}
+     * @param {object} inputData input data
+     * @returns {Promise<ThirdPartyToken>}
      */
     static async store(inputData) {
         return ThirdPartyToken.query().insert({
             active: inputData["active"],
             valid_till: inputData["validTill"],
+            route: inputData["route"],
             access_token: this.generateRandomString(80)
         });
     }

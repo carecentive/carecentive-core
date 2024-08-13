@@ -1,4 +1,4 @@
-const logger = require("winston");
+const logger = require("../source/Loggers");
 const {ValidationError} = require("joi");
 const {NotFoundError} = require("objection");
 const Errors = require("../source/Errors");
@@ -27,6 +27,13 @@ function withErrorHandler(fn) {
                 });
             }
 
+            if (e instanceof Errors.ClientError) {
+                return res.status(400).json({
+                    type: e.name,
+                    message: e.message,
+                });
+            }
+
             if (
                 e instanceof Errors.AuthenticationError
                 || e instanceof Errors.AuthenticationMissingError
@@ -45,10 +52,19 @@ function withErrorHandler(fn) {
                 });
             }
 
+            // objection not found error
             if (e instanceof NotFoundError) {
                 return res.status(404).json({
                     type: "NotFoundError",
                     message: "The model instance was not found",
+                });
+            }
+
+            // custom not found error
+            if (e instanceof Errors.NotFoundError) {
+                return res.status(404).json({
+                    type: e.name,
+                    message: e.message,
                 });
             }
 
@@ -65,9 +81,14 @@ function withErrorHandler(fn) {
                 for(let detail of e.details) {
                     details[detail.path.join('.')] = detail.message;
                 }
+                let message = "Request's body contains invalid data";
+                if(e["customMessage"]) {
+                    message = e["customMessage"];
+                }
+
                 return res.status(422).json({
                     type: "ValidationError",
-                    message: "Request's body contains invalid data",
+                    message: message,
                     details: details
                 });
             }
@@ -99,7 +120,7 @@ function withErrorHandler(fn) {
             }
 
             // log the error
-            logger.error(JSON.stringify({ error: e, request: req, location: fn.name }, getCircularReplacer()));
+            logger.error(JSON.stringify({ error: e.stack, request: req, location: fn.name }, getCircularReplacer()));
 
             // respond with a generic 500 Internal Server Error
             return res.status(500).json({ message: "Internal Server Error" });

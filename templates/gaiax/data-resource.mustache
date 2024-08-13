@@ -13,12 +13,12 @@
   "credentialSubject": {
     "id": "{{{ subject_id }}}",
     "type": "gx:DataResource",
-    "gx:name": "Data resource test",
-    "gx:description": "Testing data",
+    "gx:name": "{{{ data_resource_title }}}",
+    "gx:description": "{{{ data_resource_description }}}",
     "gx:containsPII": false,
-    "gx:policy": "default: allow",
-    "gx:license": "EPL-2.0",
-    "gx:copyrightOwnedBy": "original owner",
+    "gx:policy": ["{{{ policy_contents }}}"],
+    "gx:license": ["{{{ license_url }}}"],
+    "gx:copyrightOwnedBy": ["{{{ participant_cs_id }}}"],
     "gx:producedBy": {
       "id": "{{{ participant_cs_id }}}"
     },

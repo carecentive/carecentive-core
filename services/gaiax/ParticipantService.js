@@ -31,10 +31,13 @@ class ParticipantService {
             await DidService.createDid(participantSlug, inputData["certificateChain"]);
             await GaiaXService.issueTermsAndConditions(participantSlug, inputData["privateKey"]);
             await GaiaXService.issueLegalRegistrationNumber(participantSlug, inputData["vatId"]);
-            await GaiaXService.issueParticipant(participantSlug, inputData["privateKey"], inputData["organizationName"], inputData["countryCode"]);
+            await GaiaXService.issueParticipant(
+                participantSlug,
+                inputData["privateKey"],
+                inputData["organizationName"],
+                inputData["countryCode"]
+            );
             await GaiaXService.issueCompliance(participantSlug);
-            await GaiaXService.issueDataResource(participantSlug, inputData["privateKey"]);
-            await GaiaXService.issueDataServiceOffering(participantSlug, inputData["privateKey"]);
 
             participant = await Participant.query().insert({
                 slug: participantSlug,
@@ -44,7 +47,7 @@ class ParticipantService {
             throw e;
         }
 
-        return GaiaXService.embedUrls(participant);
+        return GaiaXService.embedParticipantUrls(participant);
     }
 
     /**

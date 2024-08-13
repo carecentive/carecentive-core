@@ -13,22 +13,31 @@
   "credentialSubject": {
     "id": "{{{ subject_id }}}",
     "type": "gx:DataProductUsageContract",
-    "gx:providedBy": "{{{ issuer }}}",
-    "gx:consumedBy": "{{{ consumer }}}",
-    "gx:dataProduct": "{{{ data_product }}}",
+    "gx:providedBy": {
+        "id": "{{{ provider_cs_id }}}"
+    },
+    "gx:consumedBy": {
+        "id": "{{{ consumer_cs_id }}}"
+    },
+    "gx:dataProduct": {
+        "id": "{{{ data_product_description_cs_id }}}"
+    },
     "gx:signers": [
         {
             "gx:participantRole": "Provider",
             "gx:mandatory": "Yes",
-            "gx:legalValidity": "No",
+            "gx:legalValidity": "No"
         },
         {
             "gx:participantRole": "Consumer",
             "gx:mandatory": "Yes",
-            "gx:legalValidity": "No",
+            "gx:legalValidity": "No"
         }
     ],
     "gx:termOfUsage": "{{{ data_product_terms_of_usage }}}",
-    "gx:dataUsage": "{{{ data_usage }}}"
-  }
+    "gx:dataUsage": {
+        "id": "{{{ data_usage_cs_id }}}"
+    }
+  },
+  "proof": []
 }

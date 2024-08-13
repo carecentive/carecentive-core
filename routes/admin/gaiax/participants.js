@@ -13,7 +13,7 @@ const Errors = require("../../../source/Errors");
  */
 router.get('/', [authentication.authenticateToken, authentication.authenticateAdmin], withErrorHandler(async function(req, res, next) {
     let participants = await Participant.query().select('id', 'slug', 'created_at', 'updated_at');
-    res.status(200).json(participants.map(p => GaiaXService.embedUrls(p)));
+    res.status(200).json(participants.map(p => GaiaXService.embedParticipantUrls(p)));
 }));
 
 /**
@@ -29,7 +29,7 @@ router.get('/:participantId', [authentication.authenticateToken, authentication.
     let participant = await Participant.query()
         .findById(participantId)
         .throwIfNotFound();
-    res.status(200).json(GaiaXService.embedUrls(participant));
+    res.status(200).json(GaiaXService.embedParticipantUrls(participant));
 }));
 
 /**

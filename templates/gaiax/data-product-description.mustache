@@ -15,7 +15,7 @@
     "gx:providedBy": {
       "id": "{{{ participant_cs_id }}}"
     },
-    "gx:policy": "policy contents test",
+    "gx:policy": "{{{ policy_contents }}}",
     "gx:termsAndConditions": {
       "gx:URL": "{{{ terms_and_conditions_url }}}",
       "gx:hash": "{{{ terms_and_conditions_hash }}}"
@@ -25,12 +25,14 @@
       "gx:accessType": "digital",
       "gx:formatType": "application/json"
     },
-    "gx:aggregationOf": ["{{{ dataset_description_cs_id }}}"],
-    "dct:license": [{{{ license_url }}}],
+    "gx:aggregationOf": [
+        {"id": "{{{ dataset_description_cs_id }}}"}
+    ],
+    "dct:license": ["{{{ license_url }}}"],
     "gx:title": "{{{ data_product_title }}}",
-    "gx:description": "{{{ data_product_description }}}",
+    {{#data_product_description}}"gx:description": "{{{ data_product_description }}}",{{/data_product_description}}
     "dct:issued": "{{{ issuance_date }}}",
-    "gx:obsoleteDateTime": "{{{ obsolete_date }}}",
+    {{#obsolete_date}}"gx:obsoleteDateTime": "{{{ obsolete_date }}}",{{/obsolete_date}}
     "gx:dataLicensors": [],
     "gx:dataUsageAgreement": [],
     "dct:identifier": "{{{ uuid }}}"

@@ -15,7 +15,19 @@
     "id": "{{{ subject_id }}}",
     "type": "gx:DatasetDescription",
     "dct:title": "{{{ dataset_title }}}",
-    "dct:distributions": ["{{{ dataset_cs_id }}}"],
+    "dct:distributions": [
+        {
+            "dct:title": "{{{ distribution_title }}}",
+            "dct:format": "application/json",
+            "gx:location": "{{{ data_resource_url }}}",
+            {{#dataset_issuance_date}}"dct:issued": "{{{ dataset_issuance_date }}}",{{/dataset_issuance_date}}
+            {{#dataset_expiration_date}}"gx:expirationDateTime": "{{{ dataset_expiration_date }}}",{{/dataset_expiration_date}}
+            {{#dataset_language}}"dcat:language": ["{{{ dataset_language }}}"],{{/dataset_language}}
+            {{#dataset_license_url}}"dct:license": ["{{{ dataset_license_url }}}"],{{/dataset_license_url}}
+            "gx:dataLicensors": [],
+            "gx:dataUsageAgreement": []
+        }
+    ],
     "dct:identifier": "{{{ uuid }}}",
     {{#dataset_issuance_date}}"dct:issued": "{{{ dataset_issuance_date }}}",{{/dataset_issuance_date}}
     {{#dataset_expiration_date}}"gx:expirationDateTime": "{{{ dataset_expiration_date }}}",{{/dataset_expiration_date}}

@@ -88,6 +88,22 @@ class MissingParamError extends Error {
   }
 }
 
+class NotFoundError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'NotFoundError';
+    Error.captureStackTrace(this, NotFoundError);
+  }
+}
+
+class ClientError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ClientError';
+    Error.captureStackTrace(this, ClientError);
+  }
+}
+
 module.exports = {
   WithingsApiError,
   FitbitApiError,
@@ -100,4 +116,6 @@ module.exports = {
   ConflictError,
   GXRemoteServiceError,
   MissingParamError,
+  NotFoundError,
+  ClientError,
 };
