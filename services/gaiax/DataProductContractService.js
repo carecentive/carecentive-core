@@ -50,7 +50,7 @@ class DataProductContractService {
         }
 
         if(did + '#JWK2020-RSA' !== didJson['verificationMethod'][0]['id']) {
-            throw new Errors.ClientError("The DID document ID the verification method DID");
+            throw new Errors.ClientError("The DID document verification method doesn't match the provided DID or the verification method differs from #JWK2020-RSA");
         }
         const certificateUrl = didJson['verificationMethod'][0]['publicKeyJwk']['x5u'];
         const certificate = await this.getCertificate(certificateUrl);
@@ -58,15 +58,19 @@ class DataProductContractService {
         if(! await GaiaXService.verifyCredential(participant, crypto.createPublicKey(certificate))){
             throw new Errors.ClientError("Failed to verify the participant signature");
         }
+
+        const contractUuid = uuidv4();
         let contractProposal = await GaiaXService.createDataProductUsageContract(
             participantSlug,
             inputData['participantUrl'],
-            this.getTermsOfUsageUrl(participantSlug, dataProduct.id)
+            this.getTermsOfUsageUrl(participantSlug, dataProduct.id),
+            contractUuid,
+            dataProduct.id
         );
 
         let dataProductContract = await DataProductContract.query()
             .insert({
-                id: uuidv4(),
+                id: contractUuid,
                 state: DataProductContract.STATE_CONSUMER_SIGNATURE_PENDING,
                 data_product_id: dataProduct['id'],
                 consumer_participant: inputData['participantUrl'],

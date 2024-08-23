@@ -27,7 +27,6 @@ class GaiaXCredentialService {
     static CREDENTIAL_NAME_DATA_PRODUCT_DESCRIPTION = "data-product-description";
     static CREDENTIAL_NAME_DATASET_DESCRIPTION = "dataset-description";
     static CREDENTIAL_NAME_DATA_USAGE = "data-usage";
-    static CREDENTIAL_NAME_DATA_PRODUCT_USAGE_CONTRACT = "data-product-usage-contract";
 
     /**
      * Insert URLs to Gaia-X credentials to the Participant object
@@ -52,13 +51,13 @@ class GaiaXCredentialService {
      * @returns {DataProduct}
      */
     static embedDataProductUrls(dataProduct) {
-        let handle = dataProduct['participant']['slug'] + '/' + dataProduct.id;
+        let slug = dataProduct['participant']['slug'];
         dataProduct["urls"] = [
-            this.getCredentialId(handle, this.CREDENTIAL_NAME_DATA_RESOURCE),
-            this.getCredentialId(handle, this.CREDENTIAL_NAME_SERVICE_OFFERING),
-            this.getCredentialId(handle, this.CREDENTIAL_NAME_DATA_PRODUCT_DESCRIPTION),
-            this.getCredentialId(handle, this.CREDENTIAL_NAME_DATASET_DESCRIPTION),
-            this.getCredentialId(handle, this.CREDENTIAL_NAME_DATA_USAGE),
+            this.getCredentialId(slug, this.CREDENTIAL_NAME_DATA_RESOURCE, dataProduct.id),
+            this.getCredentialId(slug, this.CREDENTIAL_NAME_SERVICE_OFFERING, dataProduct.id),
+            this.getCredentialId(slug, this.CREDENTIAL_NAME_DATA_PRODUCT_DESCRIPTION, dataProduct.id),
+            this.getCredentialId(slug, this.CREDENTIAL_NAME_DATASET_DESCRIPTION, dataProduct.id),
+            this.getCredentialId(slug, this.CREDENTIAL_NAME_DATA_USAGE, dataProduct.id),
         ];
         delete dataProduct['participant'];
         return dataProduct;
@@ -154,7 +153,7 @@ class GaiaXCredentialService {
     }
 
     /**
-     * Send request to Gaia-X notary to have legal registration number credential issued
+     * Send request to Gaia-X compliance service to have Participant, T&C and LRN credentials validated and signed
      *
      * @param {string} participantSlug
      * @returns {Promise<void>}
@@ -222,8 +221,8 @@ class GaiaXCredentialService {
         );
         let dataResource = mustache.render(dataResourceTemplate, {
             "issuer": DidService.getDid(participantSlug),
-            "credential_id": this.getCredentialId(participantSlug, name),
-            "subject_id": this.getCredentialSubject(participantSlug, name),
+            "credential_id": this.getCredentialId(participantSlug, name, uuid),
+            "subject_id": this.getCredentialSubject(participantSlug, name, uuid),
             "issuance_date": this.getIssuanceDateNow(),
             "participant_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_PARTICIPANT),
             "data_resource_title": dataResourceTitle,
@@ -265,11 +264,11 @@ class GaiaXCredentialService {
         );
         let serviceOffering = mustache.render(serviceOfferingTemplate, {
             "issuer": DidService.getDid(participantSlug),
-            "credential_id": this.getCredentialId(participantSlug, name),
-            "subject_id": this.getCredentialSubject(participantSlug, name),
+            "credential_id": this.getCredentialId(participantSlug, name, uuid),
+            "subject_id": this.getCredentialSubject(participantSlug, name, uuid),
             "issuance_date": this.getIssuanceDateNow(),
             "participant_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_PARTICIPANT),
-            "data_resource_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_DATA_RESOURCE),
+            "data_resource_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_DATA_RESOURCE, uuid),
             "terms_and_conditions_url": termsAndConditionsUrl,
             "terms_and_conditions_hash": termsAndConditionsHash,
             "service_offering_name": serviceOfferingName,
@@ -314,11 +313,11 @@ class GaiaXCredentialService {
         );
         let dataProductDescriptionCredential = mustache.render(dataProductDescriptionTemplate, {
             "issuer": DidService.getDid(participantSlug),
-            "credential_id": this.getCredentialId(participantSlug, name),
-            "subject_id": this.getCredentialSubject(participantSlug, name),
+            "credential_id": this.getCredentialId(participantSlug, name, uuid),
+            "subject_id": this.getCredentialSubject(participantSlug, name, uuid),
             "issuance_date": this.getIssuanceDateNow(),
             "participant_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_PARTICIPANT),
-            "dataset_description_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_DATASET_DESCRIPTION),
+            "dataset_description_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_DATASET_DESCRIPTION, uuid),
             "terms_and_conditions_url": termsAndConditionsUrl,
             "terms_and_conditions_hash": termsAndConditionsHash,
             "data_product_title": dataProductTitle,
@@ -367,8 +366,8 @@ class GaiaXCredentialService {
         );
         let datasetDescription = mustache.render(datasetDescriptionTemplate, {
             "issuer": DidService.getDid(participantSlug),
-            "credential_id": this.getCredentialId(participantSlug, name),
-            "subject_id": this.getCredentialSubject(participantSlug, name),
+            "credential_id": this.getCredentialId(participantSlug, name, dataProductUuid),
+            "subject_id": this.getCredentialSubject(participantSlug, name, dataProductUuid),
             "issuance_date": this.getIssuanceDateNow(),
             "dataset_title": datasetTitle,
             "distribution_title": datasetTitle,
@@ -403,8 +402,8 @@ class GaiaXCredentialService {
         );
         let dataUsageCredential = mustache.render(dataUsageTemplate, {
             "issuer": DidService.getDid(participantSlug),
-            "credential_id": this.getCredentialId(participantSlug, name),
-            "subject_id": this.getCredentialSubject(participantSlug, name),
+            "credential_id": this.getCredentialId(participantSlug, name, uuid),
+            "subject_id": this.getCredentialSubject(participantSlug, name, uuid),
             "issuance_date": this.getIssuanceDateNow(),
         });
         dataUsageCredential = await this.signCredential(participantSlug, dataUsageCredential, privateKey);
@@ -417,11 +416,17 @@ class GaiaXCredentialService {
      * @param {string} participantSlug
      * @param {string} consumerCsId
      * @param {string} termsOfUsage
+     * @param {string} contractUuid
+     * @param {string} dataProductUuid
      * @returns {Promise<any>}
      */
-    static async createDataProductUsageContract(participantSlug, consumerCsId, termsOfUsage) {
-        const name = this.CREDENTIAL_NAME_DATA_PRODUCT_USAGE_CONTRACT;
-
+    static async createDataProductUsageContract(
+        participantSlug,
+        consumerCsId,
+        termsOfUsage,
+        contractUuid,
+        dataProductUuid
+    ) {
         let dataProductDescriptionTemplate = fs.readFileSync(
             path.join(Utils.getCoreProjectPath(), "templates/gaiax/data-product-usage-contract.mustache"),
             "utf8"
@@ -429,14 +434,14 @@ class GaiaXCredentialService {
 
         return JSON.parse(mustache.render(dataProductDescriptionTemplate, {
             "issuer": DidService.getDid(participantSlug),
-            "credential_id": this.getCredentialId(participantSlug, name),
-            "subject_id": this.getCredentialSubject(participantSlug, name),
+            "credential_id": this.getCredentialId(participantSlug, contractUuid),
+            "subject_id": this.getCredentialSubject(participantSlug, contractUuid),
             "issuance_date": this.getIssuanceDateNow(),
             "provider_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_PARTICIPANT),
             "consumer_cs_id": consumerCsId,
-            "data_product_description_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_DATA_PRODUCT_DESCRIPTION),
+            "data_product_description_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_DATA_PRODUCT_DESCRIPTION, dataProductUuid),
             "data_product_terms_of_usage": termsOfUsage,
-            "data_usage_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_DATA_USAGE),
+            "data_usage_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_DATA_USAGE, dataProductUuid),
         }));
     }
 
@@ -546,10 +551,12 @@ class GaiaXCredentialService {
      *
      * @param {string} participantSlug
      * @param {string} credentialName
+     * @param {string|null} dataProductUuid if the parameter is provided, the URL point to credential inside the Participant's data dir, else the URL points to the credential inside Participant's base dir
      * @returns {string}
      */
-    static getCredentialId(participantSlug, credentialName) {
-        return `${Utils.getBaseUrl()}/gaia-x/${participantSlug}/${credentialName}.json`;
+    static getCredentialId(participantSlug, credentialName, dataProductUuid = null) {
+        const prefix = dataProductUuid ? "/gaia-x/" + dataProductUuid : "/gaia-x";
+        return `${Utils.getBaseUrl()}${prefix}/${participantSlug}/${credentialName}.json`;
     }
 
     /**
@@ -557,10 +564,11 @@ class GaiaXCredentialService {
      *
      * @param {string} participantSlug
      * @param {string} credentialName
+     * @param {string|null} dataProductUuid if the parameter is provided, the URL point to credential inside the Participant's data dir, else the URL points to the credential inside Participant's base dir
      * @returns {string}
      */
-    static getCredentialSubject(participantSlug, credentialName) {
-        return this.getCredentialId(participantSlug, credentialName) + "#cs";
+    static getCredentialSubject(participantSlug, credentialName, dataProductUuid = null) {
+        return this.getCredentialId(participantSlug, credentialName, dataProductUuid) + "#cs";
     }
 }
 
