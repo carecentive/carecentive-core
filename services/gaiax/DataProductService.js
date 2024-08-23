@@ -56,7 +56,6 @@ class DataProductService {
                 dataProductUuid,
                 inputData['title'],
                 inputData['description'],
-                url,
                 inputData['policy'],
                 licenseUrl,
                 inputData["privateKey"]
@@ -96,9 +95,21 @@ class DataProductService {
 
             await GaiaXService.issueDataUsage(participantSlug, dataProductUuid, inputData['privateKey']);
 
-            await GaiaXService.issueSoftwareResource(participantSlug, dataProductUuid, inputData['privateKey']);
+            await GaiaXService.issueSoftwareResource(
+                participantSlug,
+                dataProductUuid,
+                licenseUrl,
+                inputData['policy'],
+                inputData['privateKey']
+            );
 
             await GaiaXService.issueInstantiatedVirtualResource(
+                participantSlug,
+                dataProductUuid,
+                inputData['privateKey']
+            );
+
+            await GaiaXService.issueServiceAccessPoint(
                 participantSlug,
                 dataProductUuid,
                 inputData['route'],
