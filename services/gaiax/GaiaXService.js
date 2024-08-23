@@ -555,8 +555,8 @@ class GaiaXCredentialService {
      * @returns {string}
      */
     static getCredentialId(participantSlug, credentialName, dataProductUuid = null) {
-        const prefix = dataProductUuid ? "/gaia-x/" + dataProductUuid : "/gaia-x";
-        return `${Utils.getBaseUrl()}${prefix}/${participantSlug}/${credentialName}.json`;
+        const dataProductInfix = dataProductUuid ? dataProductUuid + "/" : "";
+        return `${Utils.getBaseUrl()}/gaia-x/${participantSlug}/${dataProductInfix}${credentialName}.json`;
     }
 
     /**
