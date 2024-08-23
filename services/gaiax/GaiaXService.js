@@ -27,6 +27,8 @@ class GaiaXCredentialService {
     static CREDENTIAL_NAME_DATA_PRODUCT_DESCRIPTION = "data-product-description";
     static CREDENTIAL_NAME_DATASET_DESCRIPTION = "dataset-description";
     static CREDENTIAL_NAME_DATA_USAGE = "data-usage";
+    static CREDENTIAL_NAME_SOFTWARE_RESOURCE = "software-resource";
+    static CREDENTIAL_NAME_INSTANTIATED_VIRTUAL_RESOURCE = "instantiated-virtual-resource";
 
     /**
      * Insert URLs to Gaia-X credentials to the Participant object
@@ -58,6 +60,8 @@ class GaiaXCredentialService {
             this.getCredentialId(slug, this.CREDENTIAL_NAME_DATA_PRODUCT_DESCRIPTION, dataProduct.id),
             this.getCredentialId(slug, this.CREDENTIAL_NAME_DATASET_DESCRIPTION, dataProduct.id),
             this.getCredentialId(slug, this.CREDENTIAL_NAME_DATA_USAGE, dataProduct.id),
+            this.getCredentialId(slug, this.CREDENTIAL_NAME_SOFTWARE_RESOURCE, dataProduct.id),
+            this.getCredentialId(slug, this.CREDENTIAL_NAME_INSTANTIATED_VIRTUAL_RESOURCE, dataProduct.id),
         ];
         delete dataProduct['participant'];
         return dataProduct;
@@ -227,7 +231,7 @@ class GaiaXCredentialService {
             "participant_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_PARTICIPANT),
             "data_resource_title": dataResourceTitle,
             "data_resource_description": dataResourceDescription,
-            "data_resource_url": datasetUrl,
+            "instantiated_virtual_resource_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_INSTANTIATED_VIRTUAL_RESOURCE, uuid),
             "policy_contents": datasetUrl,
             "license_url": datasetUrl,
         });
@@ -375,7 +379,7 @@ class GaiaXCredentialService {
             "dataset_issuance_date": datasetIssuanceDate ? moment(datasetIssuanceDate).toISOString(true) : null,
             "dataset_expiration_date": datasetExpirationDate ? moment(datasetExpirationDate).toISOString(true) : null,
             "dataset_language": datasetLanguage,
-            "data_resource_url": dataResourceUrl,
+            "instantiated_virtual_resource_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_INSTANTIATED_VIRTUAL_RESOURCE, dataProductUuid),
             "uuid": uuid,
         });
 
@@ -383,6 +387,73 @@ class GaiaXCredentialService {
         await ParticipantStorage.storeFile(participantSlug, `${dataProductUuid}/${name}.json`, datasetDescription);
 
         return uuid;
+    }
+
+    /**
+     * Create and sign the "SoftwareResource" credential
+     *
+     * @param {string} participantSlug
+     * @param {string} uuid
+     * @param {string} privateKey
+     * @returns {Promise<void>}
+     */
+    static async issueSoftwareResource(
+        participantSlug,
+        uuid,
+        privateKey
+    ) {
+        const name = this.CREDENTIAL_NAME_SOFTWARE_RESOURCE;
+
+        let softwareResourceTemplate = fs.readFileSync(
+            path.join(Utils.getCoreProjectPath(), "templates/gaiax/software-resource.mustache"),
+            "utf8"
+        );
+        let softwareResource = mustache.render(softwareResourceTemplate, {
+            "issuer": DidService.getDid(participantSlug),
+            "credential_id": this.getCredentialId(participantSlug, name, uuid),
+            "subject_id": this.getCredentialSubject(participantSlug, name, uuid),
+            "issuance_date": this.getIssuanceDateNow(),
+        });
+
+        softwareResource = await this.signCredential(participantSlug, softwareResource, privateKey);
+        await ParticipantStorage.storeFile(participantSlug, `${uuid}/${name}.json`, softwareResource);
+    }
+
+    /**
+     * Create and sign the "InstantiatedVirtualResource" credential
+     *
+     * @param {string} participantSlug
+     * @param {string} uuid
+     * @param {string} endpointRoute
+     * @param {string} privateKey
+     * @returns {Promise<void>}
+     */
+    static async issueInstantiatedVirtualResource(
+        participantSlug,
+        uuid,
+        endpointRoute,
+        privateKey
+    ) {
+        const name = this.CREDENTIAL_NAME_INSTANTIATED_VIRTUAL_RESOURCE;
+
+        let instantiatedVirtualResourceTemplate = fs.readFileSync(
+            path.join(Utils.getCoreProjectPath(), "templates/gaiax/instantiated-virtual-resource.mustache"),
+            "utf8"
+        );
+        let instantiatedVirtualResource = mustache.render(instantiatedVirtualResourceTemplate, {
+            "issuer": DidService.getDid(participantSlug),
+            "credential_id": this.getCredentialId(participantSlug, name, uuid),
+            "subject_id": this.getCredentialSubject(participantSlug, name, uuid),
+            "issuance_date": this.getIssuanceDateNow(),
+            "participant_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_PARTICIPANT),
+            "software_resource_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_SOFTWARE_RESOURCE, uuid),
+            "data_resource_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_DATA_RESOURCE, uuid),
+            "endpoint_route": this.getIssuanceDateNow(),
+            "domain_name": Utils.getDomain(),
+        });
+
+        instantiatedVirtualResource = await this.signCredential(participantSlug, instantiatedVirtualResource, privateKey);
+        await ParticipantStorage.storeFile(participantSlug, `${uuid}/${name}.json`, instantiatedVirtualResource);
     }
 
     /**

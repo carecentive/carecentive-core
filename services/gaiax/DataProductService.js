@@ -96,6 +96,15 @@ class DataProductService {
 
             await GaiaXService.issueDataUsage(participantSlug, dataProductUuid, inputData['privateKey']);
 
+            await GaiaXService.issueSoftwareResource(participantSlug, dataProductUuid, inputData['privateKey']);
+
+            await GaiaXService.issueInstantiatedVirtualResource(
+                participantSlug,
+                dataProductUuid,
+                inputData['route'],
+                inputData['privateKey']
+            );
+
             dataProduct = await DataProduct.query()
                 .insert({
                     id: dataProductUuid,
