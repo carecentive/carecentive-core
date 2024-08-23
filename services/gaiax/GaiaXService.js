@@ -448,7 +448,7 @@ class GaiaXCredentialService {
             "participant_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_PARTICIPANT),
             "software_resource_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_SOFTWARE_RESOURCE, uuid),
             "data_resource_cs_id": this.getCredentialSubject(participantSlug, this.CREDENTIAL_NAME_DATA_RESOURCE, uuid),
-            "endpoint_route": this.getIssuanceDateNow(),
+            "endpoint_route": endpointRoute,
             "domain_name": Utils.getDomain(),
         });
 
