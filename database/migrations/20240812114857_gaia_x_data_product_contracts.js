@@ -21,8 +21,9 @@ exports.up = function(knex) {
 };
 
 exports.down = function(knex) {
-    knex.schema.table("gaia_x_data_product_contracts", function (table) {
+    return knex.schema.table("gaia_x_data_product_contracts", function (table) {
         table.dropForeign('data_product_id', 'gaia_x_data_product_contracts_fk_data_product_id');
+    }).then(function() {
+        return knex.schema.dropTable("gaia_x_data_product_contracts");
     });
-    return knex.schema.dropTable("gaia_x_data_product_contracts");
 };

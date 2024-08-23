@@ -6,7 +6,7 @@ exports.up = function(knex) {
 };
 
 exports.down = function(knex) {
-    knex.schema.table("third_party_tokens", function (table) {
+    return knex.schema.table("third_party_tokens", function (table) {
         table.dropColumn("route");
     });
 };
