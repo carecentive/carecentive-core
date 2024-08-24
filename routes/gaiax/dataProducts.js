@@ -53,7 +53,7 @@ router.post('/', [authentication.authenticateToken, authentication.authenticateA
 /**
  * POST: Creates a DataProduct contract proposal
  */
-router.post('/:dataProductId/contracts', [authentication.authenticateToken, authentication.authenticateAdmin], withErrorHandler(async function(req, res, next) {
+router.post('/:dataProductId/contracts', withErrorHandler(async function(req, res, next) {
     let dataProductId = req.params["dataProductId"];
 
     if (!dataProductId) {

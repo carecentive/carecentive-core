@@ -9,8 +9,6 @@ const ParticipantStorage = require("../../source/helpers/gaiax/ParticipantStorag
 
 /**
  * Service for issuing and managing decentralized identifiers (https://www.w3.org/TR/did-core/)
- *
- * TODO: consider usage of the Gaia-X signer tool https://gitlab.eclipse.org/eclipse/xfsc/tsa/signer
  */
 class DidService {
     /**
