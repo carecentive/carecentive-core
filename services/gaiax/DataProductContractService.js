@@ -17,7 +17,7 @@ const os = require("os");
 const DidService = require("./DidService");
 
 /**
- * Service for creating DataProducts
+ * Service for creating and managing DataProduct contracts/proposals
  */
 class DataProductContractService {
 
