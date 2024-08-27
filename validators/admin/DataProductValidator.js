@@ -1,4 +1,5 @@
 const Joi = require("joi");
+const DataProduct = require("../../models/DataProduct");
 
 class DataProductValidator {
 
@@ -7,7 +8,7 @@ class DataProductValidator {
      *
      * @type {string[]}
      */
-    static ALLOWED_ROUTES = ['/api/withings', '/api/questionnaires'];
+    static ALLOWED_ROUTES = ['/api/measurements', '/api/questionnaires'];
 
     static async getValidatedData(req) {
         return this.validationRules().validateAsync(req.body, {abortEarly: false});
@@ -19,9 +20,11 @@ class DataProductValidator {
                 .integer()
                 .min(1)
                 .required(),
-            title: Joi.string() // TODO: use constant for length validation
+            title: Joi.string()
+                .max(DataProduct.LIMIT_TITLE)
                 .required(),
-            description: Joi.string() // TODO: use constant for length validation
+            description: Joi.string()
+                .max(DataProduct.LIMIT_DESCRIPTION)
                 .required(),
             termsAndConditions: Joi.string()
                 .required(),
@@ -32,6 +35,7 @@ class DataProductValidator {
             policy: Joi.string()
                 .required(),
             route: Joi.string()
+                .max(DataProduct.LIMIT_ROUTE)
                 .valid(...this.ALLOWED_ROUTES)
                 .required(),
             privateKey: Joi.string()

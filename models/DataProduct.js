@@ -2,6 +2,27 @@ const { Model } = require("objection");
 const Participant = require("./Participant");
 
 class DataProduct extends Model {
+
+    /**
+     * Maximum length of the title attribute
+     *
+     * @type {number}
+     */
+    static LIMIT_TITLE = 100;
+    /**
+     *
+     * Maximum length of the description attribute
+     *
+     * @type {number}
+     */
+    static LIMIT_DESCRIPTION = 5000;
+    /**
+     * Maximum length of the title attribute
+     *
+     * @type {number}
+     */
+    static LIMIT_ROUTE = 100;
+
     /**
      * @type {string}
      */

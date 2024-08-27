@@ -7,7 +7,7 @@ class Participant extends Model {
      *
      * @type {int}
      */
-    static LIMIT_SLUG = 50; // TODO: use this in migration
+    static LIMIT_SLUG = 50;
 
     /**
      * @type {int}
