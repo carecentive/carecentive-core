@@ -1,4 +1,5 @@
 const moment = require("moment");
+const path = require("path");
 
 function getDatetimeString (date) {
 	let datetimeString = date.getUTCFullYear() + "-" +
@@ -178,6 +179,70 @@ function testDateFormat(date) {
   return dateRegex.test(date);
 }
 
+/**
+ * Ensure given env var is set and return its value
+ *
+ * @param {string} varName
+ */
+function getEnvVar(varName) {
+	if (!process.env[varName] || ! process.env[varName] instanceof String) {
+		throw new Error(varName + " variable not defined")
+	}
+
+	return process.env[varName];
+}
+
+/**
+ * Returns absolute path to project using this core package
+ *
+ * @returns {string}
+ */
+function getProjectPath(){
+	return getEnvVar("PROJECT_PATH");
+}
+
+/**
+ * Returns absolute path this core project root directory
+ *
+ * @returns {string}
+ */
+function getCoreProjectPath() {
+	return path.join(__dirname, "..");
+}
+
+/**
+ * Returns absolute path to the public directory, joins the path with relativePath, if provided
+ *
+ * @param {string|null} relativePath path inside the public directory
+ * @returns {string}
+ */
+function getPublicPath(relativePath = null) {
+	let pathToPublic = path.join(getProjectPath(), "public");
+	if (relativePath === null) {
+		return pathToPublic;
+	}
+
+	return path.join(pathToPublic, relativePath);
+}
+
+/**
+ * Returns domain of the app
+ *
+ * @returns {string}
+ */
+function getDomain() {
+	return getEnvVar("DOMAIN");
+}
+
+/**
+ * Returns base URl of the app
+ *
+ * @returns {string}
+ */
+function getBaseUrl() {
+	return "https://" + getDomain();
+}
+
 module.exports = {
 	getDatetimeString,
 	dateToTimestamp,
@@ -193,5 +258,11 @@ module.exports = {
 	getDateRanges,
 	getTimestampFromISOTimestamp,
 	isTimestampToday,
-	testDateFormat
+	testDateFormat,
+	getEnvVar,
+	getProjectPath,
+	getPublicPath,
+	getBaseUrl,
+	getDomain,
+	getCoreProjectPath,
 };
