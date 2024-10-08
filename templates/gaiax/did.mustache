@@ -1,0 +1,24 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/did/v1",
+    "https://w3id.org/security/suites/jws-2020/v1"
+  ],
+  "id": "{{{ issuer }}}",
+  "verificationMethod": [
+    {
+      "id": "{{{ verificationMethod }}}",
+      "type": "JsonWebKey2020",
+      "controller": "{{{ issuer }}}",
+      "publicKeyJwk": {
+        "kty": "{{{ jwk.kty }}}",
+        "n": "{{{ jwk.n }}}",
+        "e": "{{{ jwk.e }}}",
+        "alg": "{{{ jwk.alg }}}",
+        "x5u": "{{{ jwk.x5u }}}"
+      }
+    }
+  ],
+  "assertionMethod": [
+    "{{{ verificationMethod }}}"
+  ]
+}
