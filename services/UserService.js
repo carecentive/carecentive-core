@@ -43,13 +43,19 @@ class UserService {
       throw new Error("INVALID_NAME_OR_PASSWORD");
     }
 
+    let expiresIn = '12h'
+
+    if( process.env.JWT_EXPIRES_IN ) {
+      expiresIn = process.env.JWT_EXPIRES_IN
+    }
+
     // Compare hashes
     if (bcrypt.compareSync(password, user[0].password_hash)) {
       // Distribute JWT
       let token = jwt.sign({
         "user_id": user[0].id,
         "name": user[0].name
-      }, process.env.JWT_TOKEN_SECRET, { expiresIn: '12h' });
+      }, process.env.JWT_TOKEN_SECRET, { expiresIn: expiresIn });
 
       return token;
     }
