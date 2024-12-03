@@ -10,4 +10,4 @@ class SensorData extends Model {
   }
 }
 
-module.exports = Questionnaire;
+module.exports = SensorData;

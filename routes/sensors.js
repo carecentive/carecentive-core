@@ -3,8 +3,6 @@ const router = express.Router();
 
 const SensorDataService = require('../services/SensorDataService')
 
-
-
 /**
  * Post data
  * TODO: As of now, this allows the upload of arbitrary data. Add some kind of security mechanism, such as tokens per user (also consider DDOS attacks).
@@ -16,7 +14,7 @@ router.put('/data', async function(req, res, next) {
     return res.status(400).send("Sensor identifier must be provided.");
   }
 
-  if (!req.body.data || req.body.sensorIdentifier.data === 0) {
+  if (!req.body.data || req.body.data.length === 0) {
     return res.status(400).send("Sensor data must be provided.");
   }
 
