@@ -1,0 +1,28 @@
+{
+  "@context": [
+    "https://www.w3.org/2018/credentials/v1",
+    "https://w3id.org/security/suites/jws-2020/v1",
+    "https://registry.lab.gaia-x.eu/development/api/trusted-shape-registry/v1/shapes/jsonld/trustframework#"
+  ],
+  "type": "VerifiableCredential",
+  "id": "{{{ credential_id }}}",
+  "issuer": "{{{ issuer }}}",
+  "issuanceDate": "{{{ issuance_date }}}",
+  "credentialSubject": {
+    "id": "{{{ subject_id }}}",
+    "type": "gx:InstantiatedVirtualResource",
+    "gx:maintainedBy": [{
+      "id": "{{{ participant_cs_id }}}"
+    }],
+    "gx:hostedOn": {
+        "id": "{{{ software_resource_cs_id }}}"
+    },
+    "gx:instanceOf": {
+        "id": "{{{ data_resource_cs_id }}}"
+    },
+    "gx:tenantOwnedBy": [{
+        "id": "{{{ participant_cs_id }}}"
+    }],
+    "gx:serviceAccessPoint": [{"id": "{{{ service_access_point_cs_id }}}"}]
+  }
+}
