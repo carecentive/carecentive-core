@@ -52,9 +52,9 @@ async function authenticateAdmin(req, res, next) {
   }
 
   let userId = req.authData.user_id;
-  let user = await User.query().findById(userId);
+  let user = await User.query().findById(userId).withGraphFetched('roles');
 
-  if ( user.role && user.role === 'admin' ) {
+  if ( user.roles.some((role) => role.name === "admin") ) {
     next();
   }
   else {
