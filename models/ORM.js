@@ -1,18 +1,14 @@
 const { Model } = require('objection');
-const dotenv = require('dotenv');
 
-dotenv.config();
+let _knex = null;
 
-const knex = require('knex')({
-    client: 'mysql2',
-    connection: {
-      host: process.env.MYSQL_HOST,
-      database: process.env.MYSQL_DATABASE,
-      user: process.env.MYSQL_USER,
-      password: process.env.MYSQL_PASSWORD
-    },
-  });
-  
-Model.knex(knex);
+function init(knexInstance) {
+  _knex = knexInstance;
+  Model.knex(knexInstance);
+}
 
-module.exports = {Model, knex};
+module.exports = {
+  Model,
+  get knex() { return _knex; },
+  init,
+};
