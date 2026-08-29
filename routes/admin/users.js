@@ -8,7 +8,10 @@ const User = require('../../models/User');
 
 router.get('/', [authentication.authenticateToken, authentication.authenticateAdmin], async function(req, res, next) {
   try {
-    let users = await User.query().select('id', 'pseudonym', 'role', 'created_at')
+    let users = await User.query()
+      .select('id', 'name', 'created_at')
+      .withGraphFetched('roles(nameOnly)')
+      .modifiers({ nameOnly: (builder) => builder.select('roles.id', 'roles.name') });
     return res.json(users);
   }
   catch (err) {

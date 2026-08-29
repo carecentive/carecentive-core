@@ -12,7 +12,7 @@ class WithingsRawRequest extends Model {
       modelClass: User,
       join: {
         from: 'user_withings_raw_requests.user_id',
-        to: 'user.id'
+        to: 'users.id'
       }
     }
   };

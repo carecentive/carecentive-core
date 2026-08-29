@@ -31,17 +31,22 @@ const QuestionnaireService = require('../services/QuestionnaireService')
 
 router.delete('/:id', authentication.authenticateToken, async function(req, res, next) {
   try {
-    let userId = req.authData.user_id;
-    
+    const userId = req.authData.user_id;
+
     if (!req.params.id) {
-      return res.status(400).send("ID must be specified."); 
+      return res.status(400).send("ID must be specified.");
     }
 
-    await QuestionnaireService.deleteQuestionnaireById(id);
+    await QuestionnaireService.deleteQuestionnaireById(userId, req.params.id);
 
     return res.status(200).send("Deleted.");
   }
   catch(err) {
+    if (err.message === "QUESTIONNAIRE_NOT_FOUND") {
+      // Same response whether the row is missing or owned by someone else, so
+      // this endpoint cannot be used to probe for other users' questionnaire IDs.
+      return res.status(404).send("Questionnaire not found.");
+    }
     // Use Express default error handler
     return next(err)
   }
@@ -49,21 +54,25 @@ router.delete('/:id', authentication.authenticateToken, async function(req, res,
 
 /* Add a new questionnaire to the database */
 router.post('/', authentication.authenticateToken, async function(req, res, next) {
-  let userId = req.authData.user_id;
-  let nowTimestamp = new Date();
+  try {
+    const userId = req.authData.user_id;
 
-  // Check if required fields are set
-  if (!req.body.questionnaireName || req.body.questionnaireName.length === 0) {
-    return res.status(400).send("Questionnaire identifier must be set.");
+    // Check if required fields are set
+    if (!req.body.questionnaireName || req.body.questionnaireName.length === 0) {
+      return res.status(400).send("Questionnaire identifier must be set.");
+    }
+
+    if (!req.body.questionnaireData || req.body.questionnaireData.length === 0) {
+      return res.status(400).send("Questionnaire data/content not set.");
+    }
+
+    await QuestionnaireService.addQuestionnaire(userId, req.body.questionnaireName, req.body.questionnaireData, req.body.questionnaireMeta);
+
+    res.sendStatus(200);
   }
-
-  if (!req.body.questionnaireData || req.body.questionnaireData.length === 0) {
-    return res.status(400).send("Questionnaire data/content not set.");
+  catch(err) {
+    return next(err)
   }
-
-  QuestionnaireService.addQuestionnaire(userId, req.body.questionnaireName, req.body.questionnaireData, req.body.questionnaireMeta);
-
-  res.sendStatus(200);
 });
 
 module.exports = router;

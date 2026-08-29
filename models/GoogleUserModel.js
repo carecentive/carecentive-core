@@ -13,7 +13,7 @@ class GoogleUser extends Model {
       modelClass: User,
       join: {
         from: "google_users.user_id",
-        to: "user.id",
+        to: "users.id",
       },
     },
   };

@@ -20,7 +20,7 @@ function getNowAsTimestamp() {
 }
 
 function sortObjectByKeys (object) {
-	sorted = Object.keys(object)
+	const sorted = Object.keys(object)
 		.sort()
 		.reduce((acc, key) => ({
 			...acc, [key]: object[key]

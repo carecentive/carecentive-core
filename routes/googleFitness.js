@@ -1,4 +1,7 @@
+'use strict';
+
 const express = require("express");
+const jwt = require("jsonwebtoken");
 
 const GoogleFitnessService = require("../services/FitnessService");
 const router = express.Router();
@@ -7,6 +10,40 @@ const { google } = require("googleapis");
 const authentication = require("@carecentive/carecentive-core/source/Authentication");
 const ghelper = require("../source/google");
 const { testDateFormat } = require("../source/Utils");
+
+// The OAuth `state` parameter round-trips through Google and the user's browser,
+// so it must be integrity-protected. We sign it as a short-lived JWT: the
+// callback rejects any state it did not issue, which prevents an attacker from
+// choosing the `user_id` the Google tokens get bound to, and from injecting an
+// arbitrary post-login redirect target.
+const OAUTH_STATE_TTL = "15m";
+
+function signOAuthState(payload) {
+  return jwt.sign(payload, process.env.JWT_TOKEN_SECRET, { expiresIn: OAUTH_STATE_TTL });
+}
+
+function verifyOAuthState(state) {
+  try {
+    return jwt.verify(state, process.env.JWT_TOKEN_SECRET);
+  } catch (err) {
+    return null;
+  }
+}
+
+// Only redirect back to the configured frontend origin. Anything else (including
+// a missing or foreign referer) falls back to FRONTEND_URL so this cannot be
+// used as an open redirect.
+function resolveSafeRedirect(referer) {
+  const base = process.env.FRONTEND_URL || "/";
+  if (
+    referer &&
+    process.env.FRONTEND_URL &&
+    referer.startsWith(process.env.FRONTEND_URL)
+  ) {
+    return referer;
+  }
+  return base;
+}
 
 /*
  * GET /connection
@@ -17,7 +54,7 @@ router.get(
   "/connection",
   authentication.authenticateToken,
   async function (req, res, next) {
-    userId = req.authData.user_id;
+    const userId = req.authData.user_id;
     const user = await GoogleFitnessService.getUser(userId);
     if (user) {
       res.status(400).send({
@@ -29,7 +66,8 @@ router.get(
         access_type: "offline",
         scope: ghelper.scopes,
         include_granted_scopes: true,
-        state: JSON.stringify({ userId: userId, referer: referer }), //To retain carecentive user detail during Google URL redirection
+        // Signed so the callback can trust userId/referer it gets back.
+        state: signOAuthState({ userId: userId, referer: referer }),
       });
       res.send({ url: authorizationUrl });
     }
@@ -43,25 +81,38 @@ router.get(
  * On return, frontend is redirected to the page that initiated google authentication
  */
 router.get("/auth-callback", async function (req, res, next) {
-  const { code, state } = req.query;
-  const userState = JSON.parse(state);
-  const { tokens } = await ghelper.oauth2Client.getToken(code);
-  const ticket = await ghelper.oauth2Client.verifyIdToken({
-    idToken: tokens.id_token,
-    audience: ghelper.auth.clientId,
-  });
   try {
-    if (ticket.payload) {
-      let newUser = {
-        user_id: userState.userId,
-        email: ticket.payload["email"],
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
-        id_token: tokens.id_token,
-      };
-      const googleUser = await GoogleFitnessService.addUser(newUser);
-      res.writeHead(301, { Location: userState.referer }).end();
+    const { code, state } = req.query;
+
+    const userState = verifyOAuthState(state);
+    if (!userState || !userState.userId) {
+      return res.status(400).send("Invalid or expired OAuth state.");
     }
+
+    if (!code) {
+      return res.status(400).send("Authorization code missing.");
+    }
+
+    const { tokens } = await ghelper.oauth2Client.getToken(code);
+    const ticket = await ghelper.oauth2Client.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: ghelper.auth.clientId,
+    });
+
+    if (!ticket.payload) {
+      return res.status(400).send("Could not verify Google identity.");
+    }
+
+    let newUser = {
+      user_id: userState.userId,
+      email: ticket.payload["email"],
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      id_token: tokens.id_token,
+    };
+    await GoogleFitnessService.addUser(newUser);
+
+    res.writeHead(301, { Location: resolveSafeRedirect(userState.referer) }).end();
   } catch (err) {
     next(err);
   }
@@ -76,7 +127,7 @@ router.get(
   authentication.authenticateToken,
   async function (req, res, next) {
     try {
-      userId = req.authData.user_id;
+      const userId = req.authData.user_id;
       const googleUser = await GoogleFitnessService.getUser(userId);
       res.send({
         connected: googleUser && googleUser.access_token ? true : false,
@@ -97,7 +148,7 @@ router.delete(
   authentication.authenticateToken,
   async function (req, res, next) {
     try {
-      userId = req.authData.user_id;
+      const userId = req.authData.user_id;
       await GoogleFitnessService.removeUser(userId);
       return res.status(200).send({ message: "Google Fit Disconnected" });
     } catch (err) {
@@ -124,8 +175,8 @@ router.get(
           error: "Please provide from Date (YYYY-MM-DD).",
         });
       }
-      userId = req.authData.user_id;
-      googleUser = await GoogleFitnessService.getUser(userId);
+      const userId = req.authData.user_id;
+      const googleUser = await GoogleFitnessService.getUser(userId);
       if (googleUser) {
         const data = await GoogleFitnessService.syncData(googleUser, fromDate);
         res.send(data);
@@ -150,8 +201,8 @@ router.get(
   authentication.authenticateToken,
   async function (req, res, next) {
     try {
-      userId = req.authData.user_id;
-      googleUser = await GoogleFitnessService.getUser(userId);
+      const userId = req.authData.user_id;
+      const googleUser = await GoogleFitnessService.getUser(userId);
       if (googleUser) {
         const data = await GoogleFitnessService.fetchDatatypes(userId);
         res.send({ datatypes: data });
@@ -184,7 +235,7 @@ router.get(
       }
 
       const dataTypesArray = dataTypes ? dataTypes.split(",") : [];
-      userId = req.authData.user_id;
+      const userId = req.authData.user_id;
       let result = await GoogleFitnessService.fetchData(
         userId,
         fromDate,

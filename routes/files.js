@@ -11,37 +11,82 @@ const authentication = require('../source/Authentication')
 
 const FileService = require('../services/FileService');
 
-/* Add a new questionnaire to the database */
-router.post('/', authentication.authenticateToken, async function(req, res, next) {
-  try {
-    let userId = req.authData.user_id;
+// Upload limits. Overridable via env; conservative defaults for a health app.
+const MAX_UPLOAD_BYTES = Number(process.env.UPLOAD_MAX_BYTES) || 10 * 1024 * 1024; // 10 MiB
+const ALLOWED_EXTENSIONS = (process.env.UPLOAD_ALLOWED_EXTENSIONS ||
+  '.jpg,.jpeg,.png,.webp,.heic,.heif,.pdf')
+  .split(',')
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+const ALLOWED_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/heic',
+  'image/heif',
+  'application/pdf',
+]);
 
-    var form = new multiparty.Form();
+function safeUnlink(filePath) {
+  if (!filePath) return;
+  fs.unlink(filePath, () => {});
+}
 
-    await form.parse(req, async function(err, fields, files) {
+/* Add a new file to the database */
+router.post('/', authentication.authenticateToken, function (req, res, next) {
+  const userId = req.authData.user_id;
 
-      if (!process.env.PROJECT_PATH) {
-        res.status(500).send("PROJECT_PATH_NOT_DEFINED");
+  if (!process.env.PROJECT_PATH) {
+    return res.status(500).send("PROJECT_PATH_NOT_DEFINED");
+  }
+
+  const form = new multiparty.Form({
+    maxFilesSize: MAX_UPLOAD_BYTES,
+    maxFields: 20,
+    maxFieldsSize: 1 * 1024 * 1024,
+  });
+
+  form.parse(req, async function (err, fields, files) {
+    const uploaded = files && files.data ? files.data[0] : null;
+
+    try {
+      if (err) {
+        // multiparty raises this when maxFilesSize / maxFields is exceeded, etc.
+        safeUnlink(uploaded && uploaded.path);
+        const tooLarge = /maxFilesSize|maximum allowed size/i.test(err.message || '');
+        return res.status(tooLarge ? 413 : 400).send(
+          tooLarge ? "File exceeds the maximum allowed size." : "Malformed upload."
+        );
       }
-  
+
       if (!fields.type || fields.type.length === 0) {
+        safeUnlink(uploaded && uploaded.path);
         return res.status(400).send("File type must be set.");
       }
 
-      if (!files.data) {
+      if (!uploaded) {
         return res.status(400).send("File data/content not present.");
       }
 
-      var savePath = path.join(process.env.PROJECT_PATH, "/uploads/")  
+      const extension = path.extname(uploaded.originalFilename || '').toLowerCase();
+      const mimeType = (uploaded.headers && uploaded.headers['content-type']) || '';
 
-      let fileId = await FileService.uploadFile(userId, fields.type[0], files.data[0], savePath);
+      if (!ALLOWED_EXTENSIONS.includes(extension) || !ALLOWED_MIME_TYPES.has(mimeType)) {
+        safeUnlink(uploaded.path);
+        return res.status(415).send("Unsupported file type.");
+      }
 
-      res.status(200).json({fileId: fileId});
-    });
-  }
-  catch(err) {
-    return next(err)
-  }
+      const savePath = path.join(process.env.PROJECT_PATH, "/uploads/");
+
+      const fileId = await FileService.uploadFile(userId, fields.type[0], uploaded, savePath);
+
+      return res.status(200).json({ fileId: fileId });
+    }
+    catch (controllerErr) {
+      safeUnlink(uploaded && uploaded.path);
+      return next(controllerErr);
+    }
+  });
 });
 
 module.exports = router;

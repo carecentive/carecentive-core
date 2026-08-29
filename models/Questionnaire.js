@@ -13,7 +13,7 @@ class Questionnaire extends Model {
       modelClass: User,
       join: {
         from: 'user_questionnaires.user_id',
-        to: 'user.id'
+        to: 'users.id'
       }
     }
   };

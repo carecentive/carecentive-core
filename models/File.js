@@ -13,7 +13,7 @@ class File extends Model {
       modelClass: User,
       join: {
         from: 'user_files.user_id',
-        to: 'user.id'
+        to: 'users.id'
       }
     }
   };

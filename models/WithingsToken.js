@@ -13,7 +13,7 @@ class WithingsToken extends Model {
       modelClass: User,
       join: {
         from: 'user_withings_token.user_id',
-        to: 'user.id'
+        to: 'users.id'
       }
     }
   };

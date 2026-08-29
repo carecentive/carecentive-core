@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
 
 const authentication = require('../source/Authentication')
 
@@ -8,7 +9,28 @@ const UserService = require('../services/UserService');
 
 const User = require('../models/User');
 
-router.post('/register', async function(req, res, next) {
+// Throttle unauthenticated credential endpoints to slow down brute-force and
+// enumeration attempts. Keyed by client IP (requires `app.set('trust proxy', ...)`
+// to be configured correctly when running behind a reverse proxy).
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many attempts, please try again later.',
+});
+
+// Auth cookie hardening: not readable from JS (httpOnly), only sent over HTTPS
+// in production (secure), and not sent on cross-site requests (sameSite) which
+// blocks CSRF against the cookie-authenticated API.
+const TOKEN_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',
+  path: '/',
+};
+
+router.post('/register', authLimiter, async function(req, res, next) {
   try {
 
     if(!req.body.name) {
@@ -28,11 +50,16 @@ router.post('/register', async function(req, res, next) {
     res.sendStatus(200);
   }
   catch (err) {
+    // Do not disclose whether the account already exists. Respond as if the
+    // registration succeeded; the duplicate is silently not created.
+    if (err.message === "USER_ALREADY_EXISTS") {
+      return res.sendStatus(200);
+    }
     next(err)
   }
 });
 
-router.post('/login', async function(req, res, next) {
+router.post('/login', authLimiter, async function(req, res, next) {
   try {
 
     let username = req.body.username
@@ -48,7 +75,7 @@ router.post('/login', async function(req, res, next) {
 
     let token = await UserService.login(username, password)
 
-    res.cookie('token', token, { httpOnly: true });
+    res.cookie('token', token, TOKEN_COOKIE_OPTIONS);
     return res.json(token);
   }
   catch (err) {
@@ -61,7 +88,8 @@ router.post('/login', async function(req, res, next) {
 
 router.get('/logout', async function(req, res, next) {
   try {
-    res.clearCookie('token');
+    // Clearing a cookie only works when the attributes match the ones it was set with.
+    res.clearCookie('token', { ...TOKEN_COOKIE_OPTIONS, maxAge: undefined });
     res.end();
   }
   catch (err) {

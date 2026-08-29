@@ -2,19 +2,29 @@ var express = require('express');
 var router = express.Router();
 const WithingsDataHub = require('../services/WithingsDataHub');
 
-router.get('/', async function(req, res, next) {
+const authentication = require('../source/Authentication');
+
+router.get('/', authentication.authenticateToken, async function(req, res, next) {
   /**
-   * Pull the authorization code and client_id (participant_id set as state) from the GET parameters
-   * The user is redirected from withings back to this script, and the respective data is appended as GET parameters
-   */ 
+   * Withings redirects the user's browser back here after consent with `code`
+   * (and previously `state`) as query parameters.
+   *
+   * The account the Withings data is linked to is taken from the authenticated
+   * session (JWT cookie), NOT from a caller-supplied `state` value. Trusting
+   * `state` here let anyone bind an arbitrary Withings account to any user id.
+   */
 
   try {
-    let participantId = req.query.state;
+    let userId = req.authData.user_id;
     let authorizationCode = req.query.code;
-  
-    await WithingsDataHub.registerUser(authorizationCode, participantId)
-  
-    res.render('callback', { title: 'Callback', resp: "T" });  
+
+    if (!authorizationCode) {
+      return res.status(400).send("Authorization code missing.");
+    }
+
+    await WithingsDataHub.registerUser(authorizationCode, userId)
+
+    res.render('callback', { title: 'Callback', resp: "T" });
   }
   catch(err) {
     // Use Express default error handler

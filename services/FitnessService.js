@@ -140,7 +140,7 @@ class GoogleFitnessService {
    * @param {*} googleUser
    */
   static async syncData(googleUser, syncFromDate) {
-    let { fromDate, toDate } = await this.fetchLastData(userId, syncFromDate);
+    let { fromDate, toDate } = await this.fetchLastData(googleUser.user_id, syncFromDate);
     await this.fetchFitnessData(googleUser, fromDate, toDate);
     return { message: "Data fetched from Google Fitness" };
   }

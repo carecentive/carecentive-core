@@ -13,7 +13,7 @@ class Setting extends Model {
       modelClass: User,
       join: {
         from: 'user_settings.user_id',
-        to: 'user.id'
+        to: 'users.id'
       }
     }
   };

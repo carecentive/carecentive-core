@@ -1,3 +1,5 @@
+'use strict';
+
 const express = require('express');
 const router = express.Router();
 
@@ -17,7 +19,7 @@ const authentication = require('../source/Authentication')
 
   router.get('/summary/all', authentication.authenticateToken, async function(req, res, next) {
     try {
-      userId = req.authData.user_id;
+      const userId = req.authData.user_id;
 
       let activityData = await WithingsDataHub.getActivityDataFromDatabase(userId);
 
@@ -35,7 +37,7 @@ const authentication = require('../source/Authentication')
 
    router.get('/sleep', authentication.authenticateToken, async function(req, res, next) {
     try {
-      userId = req.authData.user_id;
+      const userId = req.authData.user_id;
 
       let sleepData = await WithingsDataHub.getSleepDataFromDatabase(userId);
 
@@ -53,7 +55,7 @@ const authentication = require('../source/Authentication')
 
    router.get('/measurements', authentication.authenticateToken, async function(req, res, next) {
     try {
-      userId = req.authData.user_id;
+      const userId = req.authData.user_id;
 
       let measData = await WithingsDataHub.getMeasurementDataFromDatabase(userId);
 
@@ -71,7 +73,7 @@ const authentication = require('../source/Authentication')
 
    router.get('/blood-pressure', authentication.authenticateToken, async function(req, res, next) {
     try {
-      userId = req.authData.user_id;
+      const userId = req.authData.user_id;
 
       let measData = await WithingsDataHub.getMeasurementDataFromDatabase(userId);
 

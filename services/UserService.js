@@ -5,6 +5,11 @@ const User = require('../models/User');
 
 const RoleService = require('./RoleService')
 
+// A valid bcrypt hash of a random string. Used to run a real hash comparison on
+// the "user not found" path so that login response timing does not reveal
+// whether a given username exists (username enumeration mitigation).
+const DUMMY_PASSWORD_HASH = '$2b$12$0yqv7sKTo/C0fafah5OVCufu.kjJ1E81otr6GqSUYm0cwiOXepyxO';
+
 class UserService {
 
   static async register(name, email, password) {
@@ -36,32 +41,27 @@ class UserService {
   static async login(name, password) {
 
     // Get user
-    let user = await User.query().where('name', name);
+    let users = await User.query().where('name', name);
+    let user = users.length === 1 ? users[0] : null;
 
-    // If user does not exist, cancel
-    if (user.length === 0 || user.length > 1) {
+    // Always run one async bcrypt comparison, whether or not the account exists,
+    // so both paths take comparable time and do not leak account existence.
+    let passwordMatches = await bcrypt.compare(
+      password,
+      user ? user.password_hash : DUMMY_PASSWORD_HASH
+    );
+
+    if (!user || !passwordMatches) {
       throw new Error("INVALID_NAME_OR_PASSWORD");
     }
 
-    let expiresIn = '12h'
+    let expiresIn = process.env.JWT_EXPIRES_IN || '12h';
 
-    if( process.env.JWT_EXPIRES_IN ) {
-      expiresIn = process.env.JWT_EXPIRES_IN
-    }
-
-    // Compare hashes
-    if (bcrypt.compareSync(password, user[0].password_hash)) {
-      // Distribute JWT
-      let token = jwt.sign({
-        "user_id": user[0].id,
-        "name": user[0].name
-      }, process.env.JWT_TOKEN_SECRET, { expiresIn: expiresIn });
-
-      return token;
-    }
-    else {
-      throw new Error("INVALID_NAME_OR_PASSWORD");
-    }
+    // Distribute JWT
+    return jwt.sign({
+      "user_id": user.id,
+      "name": user.name
+    }, process.env.JWT_TOKEN_SECRET, { expiresIn: expiresIn });
   }
 
   static async changePassword(userId, newPassword) {

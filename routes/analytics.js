@@ -1,31 +1,45 @@
 const express = require('express');
 const router = express.Router();
+const rateLimit = require('express-rate-limit');
 
 const authentication = require('../source/Authentication')
 
 const Analytics = require('../models/Analytics');
 
-/* Add a new questionnaire to the database */
-router.post('/', authentication.parseButDoNotAuthenticateToken, async function(req, res, next) {
+// This endpoint accepts writes without authentication, so it needs its own
+// throttle to limit storage-exhaustion / spam abuse. Keyed by client IP.
+const analyticsLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many analytics events, slow down.',
+});
 
-  let userId;
-  if (req.authData) {
-    userId = req.authData.user_id;
+/* Record a client-side analytics event */
+router.post('/', analyticsLimiter, authentication.parseButDoNotAuthenticateToken, async function (req, res, next) {
+  try {
+    let userId;
+    if (req.authData) {
+      userId = req.authData.user_id;
+    }
+
+    if (!req.body.type || req.body.type === 0) {
+      return res.status(400).send("Analytics request type not set.");
+    }
+
+    await Analytics.query().insert({
+      user_id: userId,
+      type: req.body.type,
+      name: req.body.name,
+      details: JSON.stringify(req.body.details)
+    });
+
+    res.sendStatus(200);
   }
-  
-  if (!req.body.type || req.body.type === 0) {
-    return res.status(400).send("Analytics request type not set.");
+  catch (err) {
+    next(err);
   }
-
-  // Store questionnaire data in database
-  await Analytics.query().insert({
-    user_id: userId,
-    type: req.body.type,
-    name: req.body.name,
-    details: JSON.stringify(req.body.details)
-  });
-
-  res.sendStatus(200);
 });
 
 module.exports = router;

@@ -8,20 +8,22 @@ class QuestionnaireService {
     return questionnaires;
   }
 
-  static async deleteQuestionnaireById(questionnaireId) {
-    let questionnaire = await Questionnaire.query().findById(req.params.id);
+  static async deleteQuestionnaireById(userId, questionnaireId) {
+    const questionnaire = await Questionnaire.query().findById(questionnaireId);
 
-    if (questionnaire.user_id !== userId) {
-      throw new Error("QUESTIONNAIRE_DELETION_NOT_ALLOWED")
+    // Treat "does not exist" and "not owned by this user" identically.
+    if (!questionnaire || questionnaire.user_id !== userId) {
+      throw new Error("QUESTIONNAIRE_NOT_FOUND");
     }
 
-    let deleted = await Questionnaire.query().deleteById(req.params.id);
+    // Scope the delete by user_id as well, as defence in depth against a race
+    // between the ownership check and the delete.
+    const deleted = await Questionnaire.query()
+      .delete()
+      .where({ id: questionnaireId, user_id: userId });
 
-    if ( deleted ) {
-      return;
-    }
-    else {
-      throw new Error("QUESTIONNAIRE_DELETION_ERROR")
+    if (!deleted) {
+      throw new Error("QUESTIONNAIRE_DELETION_ERROR");
     }
   }
 

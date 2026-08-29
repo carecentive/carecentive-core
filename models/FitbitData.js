@@ -10,7 +10,7 @@ class FitbitData extends Model {
       modelClass: User,
       join: {
         from: 'user_fitbit_data.user_id',
-        to: 'user.id'
+        to: 'users.id'
       }
     }
   };

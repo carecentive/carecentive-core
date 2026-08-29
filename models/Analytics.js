@@ -2,7 +2,7 @@ const { Model } = require('objection');
 
 const User = require('./User');
 
-class Questionnaire extends Model {
+class Analytics extends Model {
   static get tableName() {
     return 'analytics';
   }
@@ -13,11 +13,11 @@ class Questionnaire extends Model {
       modelClass: User,
       join: {
         from: 'analytics.user_id',
-        to: 'user.id'
+        to: 'users.id'
       }
     }
   };
 
 }
 
-module.exports = Questionnaire;
+module.exports = Analytics;

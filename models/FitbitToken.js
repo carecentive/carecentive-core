@@ -11,7 +11,7 @@ class FitbitToken extends Model {
       modelClass: User,
       join: {
         from: 'user_fitbit_tokens.user_id',
-        to: 'user.id'
+        to: 'users.id'
       }
     }
   };

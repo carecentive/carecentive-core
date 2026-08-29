@@ -13,7 +13,7 @@ class PushSubscription extends Model {
       modelClass: User,
       join: {
         from: 'user_push_subscriptions.user_id',
-        to: 'user.id'
+        to: 'users.id'
       }
     }
   };
