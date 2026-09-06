@@ -44,7 +44,9 @@ class RoleService {
     role = await RoleService.getByIdOrName(role)
     permission = await PermissionService.getByIdOrName(permission)
 
-    if(role === false || permission === false) {
+    // getByIdOrName yields `false` for a bad argument type but `undefined` for a
+    // name/id that simply does not exist - bail on either.
+    if(!role || !permission) {
       return false;
     }
 
